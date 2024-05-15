@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Task</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body onload="uploadDataToPage()">
+<a th:href="@{/task-management}" href="home.html">Home</a>
+<br>
+<a th:href="@{/task-management/board/{boardId}(boardId=${boardId})}" href="board.html">Book list</a>
+<br>
+
+<h3>Task info:</h3>
+
+<input id="boardId" name="boardId" type="hidden" th:value="*{boardId}"/>
+
+<div class="row">
+    <label for="id">Id:</label>
+    <input id="id" name="id" type="text" readonly="readonly" th:value="*{id}"/>
+</div>
+
+<div class="row">
+    <label for="name">Task Name:</label>
+    <input id="name" name="name" type="text" value="The brief essence of the task"/>
+</div>
+
+<div class="row">
+    <label for="author">Author:</label>
+    <select id="author">
+    </select>
+</div>
+
+<div class="row">
+    <label for="executor">Executor:</label>
+    <select id="executor">
+    </select>
+</div>
+
+<div class="row">
+    <label for="reviewer">Reviewer:</label>
+    <select id="reviewer">
+    </select>
+</div>
+
+<div class="row">
+    <label for="creationDate">Creation date:</label>
+    <input id="creationDate" name="creationDate" type="date" readonly="readonly"/>
+</div>
+
+<div class="row">
+    <label for="plannedCompletionDate">Planned completion date:</label>
+    <input id="plannedCompletionDate" name="plannedCompletionDate" type="date"/>
+</div>
+
+<div class="row">
+    <label for="actualCompletionDate">Actual completion date:</label>
+    <input id="actualCompletionDate" name="actualCompletionDate" type="date"/>
+</div>
+
+<div class="row">
+    <label>Status:</label>
+    <input id="open" type="radio" value="open" name="status"/>open
+    <input id="inQueue" type="radio" value="inQueue" name="status"/>in queue
+    <input id="inWork" type="radio" value="inWork" name="status"/>in work
+    <input id="onChecking" type="radio" value="onChecking" name="status"/>on checking
+    <input id="completed" type="radio" value="completed" name="status"/>completed
+</div>
+
+<div class="row">
+    <label for="describe">Describe:</label>
+    <textarea id="describe" name="describe" value="Here you need to enter a description for the task"></textarea>
+</div>
+
+<div class="row" id="buttonSave">
+    <button type="button" onclick="saveTask()">Save</button>
+    <a href="board.html" th:href="@{/task-management/board/{boardId}(boardId=${boardId})}">
+        <button type="button">Cancel</button>
+    </a>
+</div>
+
+<script>
+    const taskId = document.getElementById('id');
+    const boardId = document.getElementById('boardId');
+    const taskName = document.getElementById('name');
+    const creationDate = document.getElementById('creationDate');
+    const plannedCompletionDate = document.getElementById('plannedCompletionDate');
+    const actualCompletionDate = document.getElementById('actualCompletionDate');
+    const describe = document.getElementById('describe');
+    const authorSelect = document.getElementById('author');
+    const executorSelect = document.getElementById('executor');
+    const reviewerSelect = document.getElementById('reviewer');
+
+    function uploadDataToPage() {
+        if (isValue(taskId.value)) {
+            uploadTaskToPage(taskId);
+        } else {
+            setDefaultValues();
+            uploadUsersToPage(null);
+        }
+    }
+
+    function setDefaultValues() {
+        document.getElementById("open").checked = true;
+    }
+
+    function uploadTaskToPage(taskId) {
+        fetch('/api/task-management/task/' + taskId.value)
+            .then(response => response.json())
+            .then(task => {
+                boardId.value = task.boardId;
+                taskName.value = task.name;
+                creationDate.value = task.creationDate;
+                plannedCompletionDate.value = task.plannedCompletionDate;
+                actualCompletionDate.value = task.actualCompletionDate;
+                describe.value = task.describe;
+                document.getElementById(task.taskStatusValue).checked = true;
+                uploadUsersToPage(task);
+            })
+            .catch(error => console.error(error));
+    }
+
+    function uploadUsersToPage(task) {
+        fetch('/api/task-management/user')
+            .then(response => response.json())
+            .then(users => {
+                users.forEach(user => {
+                    const authorOption = document.createElement('option');
+                    authorOption.value = user.id;
+                    authorOption.textContent = user.username;
+                    if (isValue(task) && user.id === task.author.id) {
+                        authorOption.selected = true;
+                    }
+                    authorSelect.appendChild(authorOption);
+
+                    const executorOption = document.createElement('option');
+                    executorOption.value = user.id;
+                    executorOption.textContent = user.username;
+                    if (isValue(task) && user.id === task.executor.id) {
+                        executorOption.selected = true;
+                    }
+                    executorSelect.appendChild(executorOption);
+
+                    const reviewerOption = document.createElement('option');
+                    reviewerOption.value = user.id;
+                    reviewerOption.textContent = user.username;
+                    if (isValue(task) && user.id === task.reviewer.id) {
+                        reviewerOption.selected = true;
+                    }
+                    reviewerSelect.appendChild(reviewerOption);
+                })
+            })
+            .catch(error => console.error(error));
+    }
+
+    function saveTask() {
+        const statuses = document.querySelectorAll('input[name="status"]');
+        let statusValue;
+        for (const s of statuses) {
+            if (s.checked) {
+                statusValue = s.value;
+            }
+        }
+
+        const taskDto = {
+            id: taskId.value,
+            name: taskName.value,
+            describe: describe.value,
+            boardId: boardId.value,
+            author: {id: authorSelect.value, username: ""},
+            executor: {id: executorSelect.value, username: ""},
+            reviewer: {id: reviewerSelect.value, username: ""},
+            creationDate: creationDate.value,
+            plannedCompletionDate: plannedCompletionDate.value,
+            actualCompletionDate: actualCompletionDate.value,
+            taskStatusValue: statusValue
+        };
+
+        if (isValue(taskId.value)) {
+            fetch("/api/task-management/task/" + taskId.value, {
+                method: "PUT",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(taskDto)})
+                .then(response => response.json())
+                .then(function () {
+                    location.href = "/task-management/board/" + boardId.value;
+                })
+                .catch(error => console.error(error));
+        } else {
+            fetch("/api/task-management/task", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(taskDto)})
+                .then(response => response.json())
+                .then(function () {
+                    location.href = "/task-management/board/" + boardId.value;
+                })
+                .catch(error => console.error(error));
+        }
+    }
+
+    function isValue(val){
+        return (val !== undefined && val != null && val !== '');
+    }
+</script>
+
+</body>
+</html>

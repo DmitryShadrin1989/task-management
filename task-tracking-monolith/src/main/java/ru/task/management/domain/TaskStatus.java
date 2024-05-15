@@ -1,0 +1,40 @@
+package ru.task.management.domain;
+
+import lombok.Getter;
+
+@Getter
+public enum TaskStatus {
+
+    OPEN("open", "The task has been created, but has not yet been queued for execution"),
+
+    IN_QUEUE("inQueue", "The task is in the queue for execution"),
+
+    IN_WORK("inWork", "The task at work"),
+
+    ON_CHECKING("onChecking", "The task is under review"),
+
+    COMPLETED("completed", "The task is completed");
+
+    private final String value;
+
+    private final String describe;
+
+    TaskStatus(String value, String describe) {
+        this.value = value;
+        this.describe = describe;
+    }
+
+    public static TaskStatus findByValue(String value) {
+        TaskStatus result = TaskStatus.OPEN;
+        if (value.equals("inQueue")) {
+            result = TaskStatus.IN_QUEUE;
+        } else if (value.equals("inWork")) {
+            result = TaskStatus.IN_WORK;
+        }else if (value.equals("onChecking")) {
+            result = TaskStatus.ON_CHECKING;
+        }else if (value.equals("completed")) {
+            result = TaskStatus.COMPLETED;
+        }
+        return result;
+    }
+}
