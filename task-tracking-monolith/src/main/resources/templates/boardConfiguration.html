@@ -48,9 +48,15 @@
     </style>
 </head>
 <body onload="uploadDataToPage()">
+
+<input id="currentUserId" name="currentUserId" type="hidden"/>
+<input id="currentUserName" name="currentUserName" type="hidden"/>
+
+<div class="currentUser" id="currentUser">Current user:</div>
+<br>
 <a th:href="@{/task-management}" href="home.html">Home</a>
 <br>
-<a th:href="@{/task-management/board/{boardId}(boardId=${boardId})}" href="board.html">Book list</a>
+<a th:href="@{/task-management/board/{boardId}(boardId=${boardId})}" href="board.html">Board</a>
 <br>
 
 <h3>Board info:</h3>
@@ -106,6 +112,11 @@
 </div>
 
 <script>
+    let token;
+    const currentUser = document.getElementById('currentUser');
+    const currentUserId = document.getElementById('currentUserId');
+    const currentUserName = document.getElementById('currentUserName');
+
     const boardId = document.getElementById('boardId');
     const name = document.getElementById('name');
     const boardOwnerSelect = document.getElementById('owner');
@@ -113,54 +124,104 @@
     const selectedUsersMap = new Map();
     const selectedUsersTable = document.getElementById('selectedUsers');
 
-    const defaultCurrentUser = {id: "current user ID", username: "current user name"};
-
     function uploadDataToPage() {
+        token = localStorage.getItem('token');
+        if (!token) {
+            location.href = "/login";
+        }
+
+        uploadAllUsersToPage();
+
         if (isValue(boardId.value)) {
+            uploadCurrentUserToPage();
             uploadBoardToPage(boardId);
         } else {
-            setTimeout(() => { setDefaultValues(); }, 2000);
+            Promise.all([uploadCurrentUserToPage()]).then(() => {
+                setDefaultValues();
+            });
         }
+    }
+
+    function uploadCurrentUserToPage() {
+        return fetch('/api/auth/current', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(user => {
+                const userLink = document.createElement("a");
+                userLink.innerHTML = user.username;
+                userLink.href = "/task-management/user/" + user.id;
+                currentUser.appendChild(userLink);
+
+                currentUserId.value = user.id;
+                currentUserName.value = user.username;
+            })
+            .catch(error => {
+                console.error(error);
+                location.href = "/login";
+            });
+    }
+
+    function uploadAllUsersToPage() {
+        let countAllUsers = 1;
+        fetch('/api/task-management/user', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(users => users.forEach(user => {
+                const row = allUsersTable.insertRow();
+                row.insertCell(0).innerText = countAllUsers;
+
+                const cellUser = row.insertCell(1);
+                cellUser.id = user.id;
+                cellUser.innerText = user.username;
+
+                const addButton = document.createElement('button');
+                addButton.innerHTML = "+";
+                addButton.user = user;
+                addButton.onclick = addUser;
+                addButton.style.width = "50px";
+                addButton.style.color = "blue";
+                cellUser.appendChild(addButton);
+
+                countAllUsers++;
+            }))
+            .catch(error => console.error(error));
     }
 
     function setDefaultValues() {
 
+        console.log(currentUserId);
+        console.log(currentUserName);
+
+        console.log(currentUserId.value);
+        console.log(currentUserName.value);
+
         const ownerOption = document.createElement('option');
-        ownerOption.value = defaultCurrentUser.id;
-        ownerOption.textContent = defaultCurrentUser.username;
+        ownerOption.value = currentUserId.value;
+        ownerOption.textContent = currentUserName.value;
         ownerOption.selected = true;
         boardOwnerSelect.appendChild(ownerOption);
 
-        addRowWithSelectedUser(defaultCurrentUser);
+        addRowWithSelectedUser({id: currentUserId.value, username: currentUserName.value});
     }
 
-    let countAllUsers = 1;
-    fetch('/api/task-management/user')
-        .then(response => response.json())
-        .then(users => users.forEach(user => {
-            const row = allUsersTable.insertRow();
-            row.insertCell(0).innerText = countAllUsers;
-
-            const cellUser = row.insertCell(1);
-            cellUser.id = user.id;
-            cellUser.innerText = user.username;
-
-            const addButton = document.createElement('button');
-            addButton.innerHTML = "add";
-            addButton.user = user;
-            addButton.onclick = addUser;
-            addButton.style.width = "50px";
-            addButton.style.color = "blue";
-            cellUser.appendChild(addButton);
-
-            defaultCurrentUser.id = user.id;
-
-            countAllUsers++;
-        }))
-        .catch(error => console.error(error));
-
     function uploadBoardToPage(boardId) {
-        fetch('/api/task-management/board/' + boardId.value)
+        fetch('/api/task-management/board/' + boardId.value, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
             .then(response => response.json())
             .then(board => {
                 name.value = board.name;
@@ -193,7 +254,7 @@
         cellUser.innerText = user.username;
 
         const deleteButton = document.createElement('button');
-        deleteButton.innerHTML = "del";
+        deleteButton.innerHTML = "-";
         deleteButton.rowNumber = selectedUsersTable.rows.length - 1;
         deleteButton.userId = user.id;
         deleteButton.onclick = delUser;
@@ -229,21 +290,23 @@
                 method: "PUT",
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(boardDto)
             })
-            .then(response => response.json())
-            .then(function () {
-                location.href = "/task-management/board/" + boardId.value;
-            })
-            .catch(error => console.error(error));
+                .then(response => response.json())
+                .then(function () {
+                    location.href = "/task-management/board/" + boardId.value;
+                })
+                .catch(error => console.error(error));
         } else {
             fetch("/api/task-management/board", {
                 method: "POST",
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(boardDto)
             })

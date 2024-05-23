@@ -1,6 +1,6 @@
 package ru.task.management.controller;
 
-import dto.TaskDto;
+import ru.task.management.dto.TaskDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

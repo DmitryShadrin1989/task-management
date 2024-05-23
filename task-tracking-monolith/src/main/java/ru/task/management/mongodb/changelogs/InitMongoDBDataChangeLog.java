@@ -29,6 +29,8 @@ public class InitMongoDBDataChangeLog {
 
     private Board board_2;
 
+    private Board board_3;
+
     private Task task_1;
 
     private Task task_2;
@@ -41,50 +43,61 @@ public class InitMongoDBDataChangeLog {
 
     @ChangeSet(order = "000", id = "dropDB", author = "DShadrin", runAlways = true)
     public void dropDB(MongoDatabase database) {
-        database.drop();
+//        database.drop();
     }
 
     @ChangeSet(order = "001", id = "initUsers", author = "DShadrin", runAlways = true)
     public void initUsers(UserRepository repository) {
+        repository.deleteAll();
+
         user_1 = repository.save(new User(
                 null,
-                "user_1",
-                "password_1"));
+                "Shadrin Dmitry",
+                "$2a$10$ogtqiPDDOMSS10tsOWovruSJn1ygG82KyXmRWS4nXyvswtxkoCIbi"));
         user_2 = repository.save(new User(
                 null,
-                "user_2",
-                "password_2"));
+                "Neil deGrasse Tyson",
+                "$2a$10$ogtqiPDDOMSS10tsOWovruSJn1ygG82KyXmRWS4nXyvswtxkoCIbi"));
         user_3 = repository.save(new User(
                 null,
-                "user_3",
-                "password_3"));
+                "Carl Sagan",
+                "$2a$10$ogtqiPDDOMSS10tsOWovruSJn1ygG82KyXmRWS4nXyvswtxkoCIbi"));
         user_4 = repository.save(new User(
                 null,
-                "user_4",
-                "password_4"));
+                "Sergey Popov",
+                "$2a$10$ogtqiPDDOMSS10tsOWovruSJn1ygG82KyXmRWS4nXyvswtxkoCIbi"));
     }
 
     @ChangeSet(order = "002", id = "initBoards", author = "DShadrin", runAlways = true)
     public void initBoards(BoardRepository repository) {
+        repository.deleteAll();
+
         board_1 = repository.save(new Board(
                 null,
-                "board_1",
+                "Studying the bodies of the solar system",
                 user_1,
                 List.of(user_1, user_2, user_3)));
 
         board_2 = repository.save(new Board(
                 null,
-                "board_2",
+                "Studying black holes",
                 user_3,
                 List.of(user_3, user_4)));
+        board_3 = repository.save(new Board(
+                null,
+                "Learning the spring boot framework",
+                user_1,
+                List.of(user_1, user_2, user_3, user_4)));
     }
 
     @ChangeSet(order = "003", id = "initTasks", author = "DShadrin", runAlways = true)
     public void initTasks(TaskRepository repository) {
+        repository.deleteAll();
+
         task_1 = repository.save(new Task(
                 null,
-                "task_1",
-                "describe_1",
+                "The search for life on Mars",
+                "It is necessary to test all theories on the search for life on the planet Mars",
                 board_1,
                 user_1,
                 user_1,
@@ -97,8 +110,8 @@ public class InitMongoDBDataChangeLog {
 
         task_2 = repository.save(new Task(
                 null,
-                "task_2",
-                "describe_2",
+                "Preparation of an expedition to Jupiter's moon Europa",
+                "It is necessary to prepare everything necessary for an expedition to Jupiter's moon Europa",
                 board_1,
                 user_1,
                 user_2,
@@ -111,8 +124,8 @@ public class InitMongoDBDataChangeLog {
 
         task_3 = repository.save(new Task(
                 null,
-                "task_3",
-                "describe_3",
+                "Return Pluto to the status of a planet",
+                "Try to return Pluto to the status of a planet",
                 board_1,
                 user_1,
                 user_3,
@@ -125,8 +138,8 @@ public class InitMongoDBDataChangeLog {
 
         task_4 = repository.save(new Task(
                 null,
-                "task_4",
-                "describe_4",
+                "Make a list of the largest black holes",
+                "It is necessary to make a list of the largest black holes",
                 board_2,
                 user_3,
                 user_3,
@@ -139,8 +152,8 @@ public class InitMongoDBDataChangeLog {
 
         task_5 = repository.save(new Task(
                 null,
-                "task_5",
-                "describe_5",
+                "To study the effects when approaching large black holes",
+                "It is necessary to study the effects when approaching large black holes",
                 board_2,
                 user_3,
                 user_4,

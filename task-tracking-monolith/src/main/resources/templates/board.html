@@ -25,10 +25,8 @@
         }
 
         .table {
-            /*background: #fff5ee;*/
             border: 1px solid steelblue;
             width: 100px;
-            /*border-collapse: collapse;*/
             white-space: nowrap;
             flex: 1 1 auto;
             margin: 0 3px;
@@ -48,32 +46,8 @@
             display: flex;
         }
 
-        /*.tasks {*/
-        /*    background: #fff5ee;*/
-        /*    border: 1px solid steelblue;*/
-        /*    width: 300px;*/
-        /*    border-collapse: collapse;*/
-        /*    white-space: nowrap;*/
-        /*}*/
-
-        /*.tasks tr td, th {*/
-        /*    padding: 15px;*/
-        /*    border: 1px solid steelblue;*/
-        /*    vertical-align: top;*/
-        /*}*/
-
-        /*.tasks td:last-child, td:first-child {*/
-        /*    width: 100px;*/
-        /*}*/
-
         textarea {
-            /*background: #f0fff0; !* Цвет фона *!*/
-            /*border: 2px solid #a9c358; !* Параметры рамки *!*/
-            /*padding: 10px; !* Поля *!*/
-            /*width: 10%; !* Ширина *!*/
-            /*height: 200px; !* Высота *!*/
-            /*box-sizing: border-box; !* Алгоритм расчёта ширины *!*/
-            font-size: 14px; /* Размер шрифта */
+            font-size: 14px;
         }
 
         .filters {
@@ -85,7 +59,10 @@
         }
     </style>
 </head>
-<body>
+<body onload="uploadDataToPage()">
+
+<div class="currentUser" id="currentUser">Current user: </div>
+<br>
 <a th:href="@{/task-management}" href="home.html">Home</a>
 <br>
 
@@ -201,6 +178,9 @@
 </div>
 
 <script>
+    let token;
+    const currentUser = document.getElementById('currentUser');
+
     const boardId = document.getElementById('id');
     const boardName = document.getElementById('name');
     const boardOwner = document.getElementById('owner');
@@ -214,57 +194,119 @@
     const onCheckingTasksTable = document.getElementById('onCheckingTasks');
     const completedTasksTable = document.getElementById('completedTasks');
 
-    fetch('/api/task-management/board/' + boardId.value)
-        .then(response => response.json())
-        .then(board => {
-            boardName.value = board.name;
-            boardOwner.value = board.owner.username;
+    function uploadDataToPage() {
+        token = localStorage.getItem('token');
+        if (!token) {
+            location.href = "/login";
+        }
+        uploadCurrentUserToPage();
 
-            let executorsStr = "";
-            board.executors.forEach(user => {
-                const executorFilterOption = document.createElement('option');
-                executorFilterOption.value = user.id;
-                executorFilterOption.textContent = user.username;
-                boardExecutorFilterSelect.appendChild(executorFilterOption);
+        uploadBoardToPage();
+    }
 
-                const authorFilterOption = document.createElement('option');
-                authorFilterOption.value = user.id;
-                authorFilterOption.textContent = user.username;
-                boardAuthorFilterSelect.appendChild(authorFilterOption);
-
-                const reviewerFilterOption = document.createElement('option');
-                reviewerFilterOption.value = user.id;
-                reviewerFilterOption.textContent = user.username;
-                boardReviewerFilterSelect.appendChild(reviewerFilterOption);
-
-                executorsStr += user.username + "; \n";
-            })
-            document.getElementById('executors').value = executorsStr;
-            uploadTasksToPage();
+    function uploadCurrentUserToPage() {
+        fetch('/api/auth/current', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
         })
-        .catch(error => console.error(error));
+            .then(response => response.json())
+            .then(user => {
+                const userLink = document.createElement("a");
+                userLink.innerHTML = user.username;
+                userLink.href = "/task-management/user/" + user.id;
+                currentUser.appendChild(userLink);
+            })
+            .catch(error => console.error(error));
+    }
+
+    function uploadBoardToPage() {
+        fetch('/api/task-management/board/' + boardId.value, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(board => {
+                boardName.value = board.name;
+                boardOwner.value = board.owner.username;
+
+                let executorsStr = "";
+                board.executors.forEach(user => {
+                    const executorFilterOption = document.createElement('option');
+                    executorFilterOption.value = user.id;
+                    executorFilterOption.textContent = user.username;
+                    boardExecutorFilterSelect.appendChild(executorFilterOption);
+
+                    const authorFilterOption = document.createElement('option');
+                    authorFilterOption.value = user.id;
+                    authorFilterOption.textContent = user.username;
+                    boardAuthorFilterSelect.appendChild(authorFilterOption);
+
+                    const reviewerFilterOption = document.createElement('option');
+                    reviewerFilterOption.value = user.id;
+                    reviewerFilterOption.textContent = user.username;
+                    boardReviewerFilterSelect.appendChild(reviewerFilterOption);
+
+                    executorsStr += user.username + "; \n";
+                })
+                document.getElementById('executors').value = executorsStr;
+                uploadTasksToPage();
+            })
+            .catch(error => {
+                console.error(error);
+                location.href = "/login";
+            });
+
+    }
 
     function uploadTasksToPage() {
-        fetch('/api/task-management/task?boardId=' + boardId.value)
+        fetch('/api/task-management/task?boardId=' + boardId.value, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
             .then(response => response.json())
             .then(tasks => tasks.forEach(task => {
                 let row = openTasksTable.insertRow();
-                // todo заменить на switch case или чтото получше
-                if (task.taskStatusValue === "open") {
-                    row = openTasksTable.insertRow();
-                } else if (task.taskStatusValue === "inQueue") {
-                    row = inQueueTasksTable.insertRow();
-                } else if (task.taskStatusValue === "inWork") {
-                    row = inWorkTasksTable.insertRow();
-                } else if (task.taskStatusValue === "onChecking") {
-                    row = onCheckingTasksTable.insertRow();
-                } else if (task.taskStatusValue === "completed") {
-                    row = completedTasksTable.insertRow();
+
+                switch (task.taskStatusValue) {
+                    case 'inQueue':
+                        row = inQueueTasksTable.insertRow();
+                        break;
+                    case 'inWork':
+                        row = inWorkTasksTable.insertRow();
+                        break;
+                    case 'onChecking':
+                        row = onCheckingTasksTable.insertRow();
+                        break;
+                    case 'completed':
+                        row = completedTasksTable.insertRow();
+                        break;
                 }
+
                 const taskCell = row.insertCell(0);
+
+                const taskExecutorLabel = document.createElement('label');
+                taskExecutorLabel.textContent = "Executor: " + task.executor.username;
+                taskExecutorLabel.style.display = 'block';
+                taskCell.appendChild(taskExecutorLabel);
+
+                const plannedDateLabel = document.createElement('label');
+                plannedDateLabel.textContent = "Planned date: " + task.plannedCompletionDate;
+                plannedDateLabel.style.display = 'block';
+                taskCell.appendChild(plannedDateLabel);
+
                 const taskLink = document.createElement('a');
                 taskLink.innerHTML = task.name;
-                taskLink.href = "/task-management/task/" + task.id;
+                taskLink.href = "/task-management" + "/board/" + boardId.value + "/task/" + task.id;
+                taskLink.style.display = 'block';
                 taskCell.appendChild(taskLink);
             }))
             .catch(error => console.error(error));

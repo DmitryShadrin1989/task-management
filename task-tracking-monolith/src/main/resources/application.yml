@@ -1,15 +1,22 @@
+server:
+  port: 8080
+
 spring:
   data:
     mongodb:
       host: localHost
-      port: 0
+      port: 27017
       database: taskTrackingDb
+      auto-index-creation: true
 
-de:
-  flapdoodle:
-    mongodb:
-      embedded:
-        version: 4.0.2
+#  main:
+#    allow-circular-references: true
+
+#de:
+#  flapdoodle:
+#    mongodb:
+#      embedded:
+#        version: 4.0.2
 
 mongock:
   runner-type: "InitializingBean"
@@ -20,5 +27,6 @@ mongock:
       journal: false
     read-concern: local
 
-server:
-  port: 8080
+JwtToken:
+  expirationDays: 7
+  secret: SuperSecret

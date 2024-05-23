@@ -1,7 +1,7 @@
 package ru.task.management.service;
 
-import dto.TaskDto;
-import exception.EntityNotFoundException;
+import ru.task.management.dto.TaskDto;
+import ru.task.management.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,7 @@ public class TaskServiceImpl implements TaskService {
     public Task insert(TaskDto taskDto) {
         return save(null, taskDto.getName(), taskDto.getDescribe(), taskDto.getBoardId(),
                 taskDto.getAuthor().getId(), taskDto.getExecutor().getId(), taskDto.getReviewer().getId(),
-                taskDto.getCreationDate(), taskDto.getPlannedCompletionDate(), taskDto.getActualCompletionDate(),
+                LocalDate.now(), taskDto.getPlannedCompletionDate(), taskDto.getActualCompletionDate(),
                 taskDto.getTaskStatusValue());
     }
 

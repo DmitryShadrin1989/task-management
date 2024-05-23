@@ -1,4 +1,4 @@
-package dto;
+package ru.task.management.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

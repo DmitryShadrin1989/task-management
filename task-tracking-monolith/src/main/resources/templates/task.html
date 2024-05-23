@@ -23,9 +23,12 @@
     </style>
 </head>
 <body onload="uploadDataToPage()">
+
+<div class="currentUser" id="currentUser">Current user: </div>
+<br>
 <a th:href="@{/task-management}" href="home.html">Home</a>
 <br>
-<a th:href="@{/task-management/board/{boardId}(boardId=${boardId})}" href="board.html">Book list</a>
+<a th:href="@{/task-management/board/{boardId}(boardId=${boardId})}" href="board.html">Board</a>
 <br>
 
 <h3>Task info:</h3>
@@ -97,6 +100,10 @@
 </div>
 
 <script>
+    let token;
+    const currentUser = document.getElementById('currentUser');
+    let currentUserObj = {};
+
     const taskId = document.getElementById('id');
     const boardId = document.getElementById('boardId');
     const taskName = document.getElementById('name');
@@ -109,6 +116,12 @@
     const reviewerSelect = document.getElementById('reviewer');
 
     function uploadDataToPage() {
+        token = localStorage.getItem('token');
+        if (!token) {
+            location.href = "/login";
+        }
+        uploadCurrentUserToPage();
+
         if (isValue(taskId.value)) {
             uploadTaskToPage(taskId);
         } else {
@@ -117,12 +130,37 @@
         }
     }
 
+    function uploadCurrentUserToPage() {
+        fetch('/api/auth/current', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(user => {
+                const userLink = document.createElement("a");
+                userLink.innerHTML = user.username;
+                userLink.href = "/task-management/user/" + user.id;
+                currentUser.appendChild(userLink);
+                currentUserObj = user;
+            })
+            .catch(error => console.error(error));
+    }
+
     function setDefaultValues() {
         document.getElementById("open").checked = true;
     }
 
     function uploadTaskToPage(taskId) {
-        fetch('/api/task-management/task/' + taskId.value)
+        fetch('/api/task-management/task/' + taskId.value, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
             .then(response => response.json())
             .then(task => {
                 boardId.value = task.boardId;
@@ -133,12 +171,21 @@
                 describe.value = task.describe;
                 document.getElementById(task.taskStatusValue).checked = true;
                 uploadUsersToPage(task);
+
+                console.log(boardId.value);
             })
             .catch(error => console.error(error));
+        console.log(boardId.value);
     }
 
     function uploadUsersToPage(task) {
-        fetch('/api/task-management/user')
+        fetch('/api/task-management/board/' + boardId.value +'/user', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
             .then(response => response.json())
             .then(users => {
                 users.forEach(user => {
@@ -167,7 +214,10 @@
                     reviewerSelect.appendChild(reviewerOption);
                 })
             })
-            .catch(error => console.error(error));
+            .catch(error => {
+                console.error(error);
+                location.href = "/login";
+            });
     }
 
     function saveTask() {
@@ -198,7 +248,8 @@
                 method: "PUT",
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(taskDto)})
                 .then(response => response.json())
@@ -211,7 +262,8 @@
                 method: "POST",
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(taskDto)})
                 .then(response => response.json())

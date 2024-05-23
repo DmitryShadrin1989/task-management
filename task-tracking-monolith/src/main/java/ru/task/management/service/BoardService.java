@@ -1,7 +1,8 @@
 package ru.task.management.service;
 
-import dto.BoardDto;
-import dto.UserDto;
+import ru.task.management.domain.User;
+import ru.task.management.dto.BoardDto;
+import ru.task.management.dto.UserDto;
 import ru.task.management.domain.Board;
 
 import java.util.List;
@@ -17,4 +18,8 @@ public interface BoardService {
     Board insert(BoardDto boardDto);
 
     Board updatePerformersOnBoard(String id, List<UserDto> userDtoList);
+
+    List<Board> findByExecutorsId(String executorId);
+
+    List<User> getExecutorsOfBoard(String boardId);
 }

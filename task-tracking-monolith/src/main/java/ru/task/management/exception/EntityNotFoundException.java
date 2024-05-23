@@ -1,4 +1,4 @@
-package exception;
+package ru.task.management.exception;
 
 public class EntityNotFoundException extends RuntimeException {
     public EntityNotFoundException(String message) {

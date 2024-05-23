@@ -1,8 +1,9 @@
 package ru.task.management.service;
 
-import dto.BoardDto;
-import dto.UserDto;
-import exception.EntityNotFoundException;
+import ru.task.management.domain.User;
+import ru.task.management.dto.BoardDto;
+import ru.task.management.dto.UserDto;
+import ru.task.management.exception.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,22 @@ public class BoardServiceImpl implements BoardService {
                 userDtoList.stream()
                         .map(UserDto::getId)
                         .toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Board> findByExecutorsId(String executorId) {
+        var executor = userRepository.findById(executorId)
+                .orElseThrow(() -> new EntityNotFoundException("User with id %s not found".formatted(executorId)));
+        return boardRepository.findAllByExecutorsContains(executor);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getExecutorsOfBoard(String boardId) {
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("Board with id %s not found".formatted(boardId)));
+        return board.getExecutors();
     }
 
     @Override

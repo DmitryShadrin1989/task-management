@@ -1,10 +1,9 @@
 package ru.task.management.service;
 
-import dto.TaskDto;
+import ru.task.management.dto.TaskDto;
 import ru.task.management.domain.Task;
 
 import java.util.List;
-import java.util.Map;
 
 public interface TaskService {
 

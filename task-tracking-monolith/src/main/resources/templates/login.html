@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Authentication</title>
+
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Authentication</h2>
+
+<h3>Please enter your account details:</h3>
+
+<div class="row">
+    <label for="username">Username:</label>
+    <input id="username" name="username" type="text"/>
+</div>
+
+<div class="row">
+    <label for="password">Password:</label>
+    <input id="password" name="password" type="text"/>
+</div>
+
+<br>
+
+<button type="button" onclick="login()">Log in</button>
+<button type="button" id="createAccount" onclick="createAccount()">Create a new account</button>
+
+<script>
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+
+    function login() {
+        const loginRequestDto = {username: username.value, password: password.value};
+        let tokenLet;
+        fetch("/api/auth/login", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginRequestDto)
+        })
+            .then(response => response.text())
+            .then(token => {
+                localStorage.setItem('token', token);
+                tokenLet = token;
+            })
+            .then(function () {
+                location.href = "/task-management";
+            })
+            .catch(error => console.error(error));;
+    }
+
+    function createAccount() {
+        const loginRequestDto = {username: username.value, password: password.value};
+        fetch("/api/task-management/user", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginRequestDto)
+        })
+            .then(response => response.json())
+            .then(user => {
+                const newMessage = document.createElement("label");
+                newMessage.textContent = "The account for the user " + user.username +
+                    " has been successfully created. Please enter your new credentials.";
+                newMessage.style.color = "green";
+                document.body.appendChild(document.createElement('br'));
+                document.body.appendChild(newMessage);
+                document.body.appendChild(document.createElement('br'));
+            })
+            .catch(error => console.error(error));
+    }
+</script>
+
+</body>
+</html>

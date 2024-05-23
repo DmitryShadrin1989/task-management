@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequiredArgsConstructor
 public class PageController {
 
+    @GetMapping("/login")
+    public String getAuthPage() {
+        return "login";
+    }
+
     @GetMapping("/task-management")
     public String getBoardListPage() {
         return "home";
@@ -21,8 +26,9 @@ public class PageController {
         return "board";
     }
 
-    @GetMapping("/task-management/task/{id}")
-    public String getTaskPage(@PathVariable String id, Model model) {
+    @GetMapping("/task-management/board/{boardId}/task/{id}")
+    public String getTaskPage(@PathVariable String boardId, @PathVariable String id, Model model) {
+        model.addAttribute("boardId", boardId);
         model.addAttribute("id", id);
         return "task";
     }
@@ -42,5 +48,11 @@ public class PageController {
     @GetMapping("/task-management/board/new")
     public String getNewBordConfigPage() {
         return "boardConfiguration";
+    }
+
+    @GetMapping("/task-management/user/{userId}")
+    public String getUserPage(@PathVariable String userId, Model model) {
+        model.addAttribute("userId", userId);
+        return "user";
     }
 }
