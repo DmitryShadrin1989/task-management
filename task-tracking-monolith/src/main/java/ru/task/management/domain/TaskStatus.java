@@ -25,6 +25,7 @@ public enum TaskStatus {
     }
 
     public static TaskStatus findByValue(String value) {
+        //todo оптимизировать, может заменить на switch case
         TaskStatus result = TaskStatus.OPEN;
         if (value.equals("inQueue")) {
             result = TaskStatus.IN_QUEUE;

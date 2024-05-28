@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Board</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+        }
+
+        .head-label {
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+
+        .table {
+            border: 1px solid steelblue;
+            width: 100px;
+            border-collapse: collapse;
+            white-space: nowrap;
+            margin: 0 10px;
+        }
+
+        .table tr td, th {
+            padding: 15px;
+            border: 1px solid steelblue;
+            vertical-align: top;
+        }
+
+        .table td:last-child, td:first-child {
+            width: 50px;
+        }
+
+        .tablesGroup {
+            display: flex;
+        }
+    </style>
+</head>
+<body onload="uploadDataToPage()">
+
+<input id="currentUserId" name="currentUserId" type="hidden"/>
+<input id="currentUserName" name="currentUserName" type="hidden"/>
+
+<div class="currentUser" id="currentUser">Current user:</div>
+<br>
+<a th:href="@{/task-management}" href="home.html">Home</a>
+<br>
+<a th:href="@{/task-management/board/{boardId}(boardId=${boardId})}" href="board.html">Board</a>
+<br>
+
+<h3>Board info:</h3>
+
+<div class="row">
+    <label class="head-label" for="boardId">Id:</label>
+    <input id="boardId" name="boardId" type="text" readonly="readonly" th:value="*{boardId} "/>
+</div>
+
+<div class="row">
+    <label class="head-label" for="name">Board Name:</label>
+    <input id="name" name="name" type="text"/>
+</div>
+
+<div class="row">
+    <label class="head-label" for="owner">Owner:</label>
+    <select id="owner">
+    </select>
+</div>
+
+<br>
+<h3>List of performers:</h3>
+<div class="tablesGroup">
+
+    <table class="table" id="allUsers">
+        <thead>
+        <tr>
+            <th>№</th>
+            <th>All users</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+    <table class="table" id="selectedUsers">
+        <thead>
+        <tr>
+            <th>Selected users</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+
+</div>
+
+<div class="row" id="buttonSave">
+    <button type="button" onclick="saveBoard()">Save</button>
+    <a href="board.html" th:href="@{/task-management/board/{boardId}(boardId=${boardId})}">
+        <button type="button">Cancel</button>
+    </a>
+</div>
+
+<script>
+    const gateway_host = "http://localhost:8080";
+
+    let token;
+    const currentUser = document.getElementById('currentUser');
+    const currentUserId = document.getElementById('currentUserId');
+    const currentUserName = document.getElementById('currentUserName');
+
+    const boardId = document.getElementById('boardId');
+    const name = document.getElementById('name');
+    const boardOwnerSelect = document.getElementById('owner');
+    const allUsersTable = document.getElementById('allUsers');
+    const selectedUsersMap = new Map();
+    const selectedUsersTable = document.getElementById('selectedUsers');
+
+    function uploadDataToPage() {
+        token = localStorage.getItem('token');
+        if (!token) {
+            location.href = "/login";
+        }
+
+        uploadAllUsersToPage();
+
+        if (isValue(boardId.value)) {
+            uploadCurrentUserToPage();
+            uploadBoardToPage(boardId);
+        } else {
+            Promise.all([uploadCurrentUserToPage()]).then(() => {
+                setDefaultValues();
+            });
+        }
+    }
+
+    function uploadCurrentUserToPage() {
+        return fetch(gateway_host + '/api/auth/current', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(user => {
+                const userLink = document.createElement("a");
+                userLink.innerHTML = user.username;
+                userLink.href = "/task-management/user/" + user.id;
+                currentUser.appendChild(userLink);
+
+                currentUserId.value = user.id;
+                currentUserName.value = user.username;
+            })
+            .catch(error => {
+                console.error(error);
+                location.href = "/login";
+            });
+    }
+
+    function uploadAllUsersToPage() {
+        let countAllUsers = 1;
+        fetch(gateway_host + '/api/user', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(users => users.forEach(user => {
+                const row = allUsersTable.insertRow();
+                row.insertCell(0).innerText = countAllUsers;
+
+                const cellUser = row.insertCell(1);
+                cellUser.id = user.id;
+                cellUser.innerText = user.username;
+
+                const addButton = document.createElement('button');
+                addButton.innerHTML = "+";
+                addButton.user = user;
+                addButton.onclick = addUser;
+                addButton.style.width = "50px";
+                addButton.style.color = "blue";
+                cellUser.appendChild(addButton);
+
+                countAllUsers++;
+            }))
+            .catch(error => console.error(error));
+    }
+
+    function setDefaultValues() {
+
+        console.log(currentUserId);
+        console.log(currentUserName);
+
+        console.log(currentUserId.value);
+        console.log(currentUserName.value);
+
+        const ownerOption = document.createElement('option');
+        ownerOption.value = currentUserId.value;
+        ownerOption.textContent = currentUserName.value;
+        ownerOption.selected = true;
+        boardOwnerSelect.appendChild(ownerOption);
+
+        addRowWithSelectedUser({id: currentUserId.value, username: currentUserName.value});
+    }
+
+    function uploadBoardToPage(boardId) {
+        fetch(gateway_host + '/api/board/' + boardId.value, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(board => {
+                name.value = board.name;
+                board.executors.forEach(user => {
+                    const ownerOption = document.createElement('option');
+                    ownerOption.value = user.id;
+                    ownerOption.textContent = user.username;
+                    if (user.id === board.owner.id) {
+                        ownerOption.selected = true;
+                    }
+                    boardOwnerSelect.appendChild(ownerOption);
+
+                    addRowWithSelectedUser(user);
+                });
+            })
+            .catch(error => console.error(error));
+    }
+
+    function addRowWithSelectedUser(user) {
+        if (selectedUsersMap.has(user.id)) {
+            addErrorMessage("The user has already been added");
+            return;
+        }
+        selectedUsersMap.set(user.id, user);
+
+        const row = selectedUsersTable.insertRow();
+
+        const cellUser = row.insertCell(0);
+        cellUser.id = user.id;
+        cellUser.innerText = user.username;
+
+        const deleteButton = document.createElement('button');
+        deleteButton.innerHTML = "-";
+        deleteButton.rowNumber = selectedUsersTable.rows.length - 1;
+        deleteButton.userId = user.id;
+        deleteButton.onclick = delUser;
+        deleteButton.style.width = "50px";
+        deleteButton.style.color = "red";
+        cellUser.appendChild(deleteButton);
+    }
+
+    function addUser(pointerEvent) {
+        addRowWithSelectedUser(pointerEvent.currentTarget.user);
+    }
+
+    function delUser(pointerEvent) {
+        selectedUsersTable.deleteRow(pointerEvent.currentTarget.rowNumber);
+        selectedUsersMap.delete(pointerEvent.currentTarget.userId);
+    }
+
+    function saveBoard() {
+        let executors = [];
+        for (let user of selectedUsersMap.values()) {
+            executors.push(user);
+        }
+
+        const boardDto = {
+            id: boardId.value,
+            name: name.value,
+            owner: {id: boardOwnerSelect.value, username: ""},
+            executors: executors
+        };
+
+        if (isValue(boardId.value)) {
+            fetch(gateway_host + "/api/board/" + boardId.value, {
+                method: "PUT",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(boardDto)
+            })
+                .then(response => response.json())
+                .then(function () {
+                    location.href = "/task-management/board/" + boardId.value;
+                })
+                .catch(error => console.error(error));
+        } else {
+            fetch(gateway_host + "/api/board", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(boardDto)
+            })
+                .then(response => response.json())
+                .then(function () {
+                    location.href = "/task-management";
+                })
+                .catch(error => console.error(error));
+        }
+    }
+
+    function addErrorMessage(message) {
+        const newErrorMessage = document.createElement("label");
+        newErrorMessage.textContent += message;
+        newErrorMessage.style.color = "red";
+        document.body.appendChild(newErrorMessage);
+        document.body.appendChild(document.createElement('br'));
+    }
+
+    function isValue(val) {
+        return (val !== undefined && val != null && val !== '');
+    }
+</script>
+
+</body>
+</html>
