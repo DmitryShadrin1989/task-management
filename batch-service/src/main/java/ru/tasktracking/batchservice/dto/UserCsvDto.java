@@ -1,0 +1,19 @@
+package ru.tasktracking.batchservice.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+public class UserCsvDto {
+
+    private Long id;
+
+    private String username;
+
+    private String password;
+}

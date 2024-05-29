@@ -1,0 +1,5 @@
+1, "The search for life on Mars", "It is necessary to test all theories on the search for life on the planet Mars", 1, 1, 2, 1, 01.06.2024, 30.06.2024, 15.06.2024, open
+2, "Preparation of an expedition to Jupiter's moon Europa", "It is necessary to prepare everything necessary for an expedition to Jupiter's moon Europa", 1, 1, 3, 2, 01.06.2024, 30.06.2024, 15.06.2024, inQueue
+3, "Return Pluto to the status of a planet", "Try to return Pluto to the status of a planet", 1, 2, 1, 2, 01.06.2024, 30.06.2024, 15.06.2024, inQueue
+4, "Make a list of the largest black holes", "It is necessary to make a list of the largest black holes", 2, 4, 1, 3, 01.06.2024, 30.06.2024, 15.06.2024, inWork
+5, "To study the effects when approaching large black holes", "It is necessary to study the effects when approaching large black holes", 2, 4, 1, 3, 01.06.2024, 30.06.2024, 15.06.2024, onChecking
