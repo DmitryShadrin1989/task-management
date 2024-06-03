@@ -25,7 +25,9 @@ public class JobConfig {
                            TaskletStep removeAllBoards,
                            Step migrateBoardsStep,
                            TaskletStep removeAllTasks,
-                           Step migrateTasksStep) {
+                           Step migrateTasksStep,
+                           TaskletStep removeAllComments,
+                           Step migrateCommentsStep) {
         return new JobBuilder(JOB_NAME, jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .start(removeAllUsers)
@@ -34,6 +36,8 @@ public class JobConfig {
                 .next(migrateBoardsStep)
                 .next(removeAllTasks)
                 .next(migrateTasksStep)
+                .next(removeAllComments)
+                .next(migrateCommentsStep)
                 .build();
     }
 }

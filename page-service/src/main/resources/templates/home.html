@@ -4,19 +4,88 @@
     <meta charset="UTF-8">
     <title>List of available boards</title>
     <style type="text/css">
+        /*.boards {*/
+        /*    border: 1px solid steelblue;*/
+        /*    width: 300px;*/
+        /*    border-collapse: collapse;*/
+        /*}*/
+
+        /*.boards tr td, th {*/
+        /*    padding: 5px;*/
+        /*    border: 1px solid steelblue;*/
+        /*}*/
+
+        /*.boards td:last-child, td:first-child {*/
+        /*    width: 50px;*/
+        /*}*/
+
+        body {
+            padding: 50px;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        .currentUser {
+            font-size: 16px;
+            font-weight: bold;
+            color: #343a40;
+        }
+
+        h2, h3 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.375rem 0.75rem;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
         .boards {
-            border: 1px solid steelblue;
-            width: 300px;
+            border: 1px solid #007bff;
+            width: 100%;
             border-collapse: collapse;
+            margin-top: 15px;
         }
 
-        .boards tr td, th {
-            padding: 5px;
-            border: 1px solid steelblue;
+        .boards tr td, .boards th {
+            padding: 10px;
+            border: 1px solid #007bff;
+            text-align: left;
         }
 
-        .boards td:last-child, td:first-child {
-            width: 50px;
+        .boards th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .boards td:last-child, .boards td:first-child {
+            width: auto;
+        }
+
+        .commandsBoards {
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -91,7 +160,6 @@
                     localStorage.removeItem('token');
                     location.href = "/login";
                 });
-                logoutButton.style.color = "blue";
                 currentUser.appendChild(logoutButton);
 
                 currentUserObj = user;

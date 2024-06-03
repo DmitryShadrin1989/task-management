@@ -14,4 +14,6 @@ public class AppProperties {
     private String boardInitFile;
 
     private String taskInitFile;
+
+    private String commentInitFile;
 }

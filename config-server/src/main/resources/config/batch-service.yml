@@ -36,3 +36,4 @@ app:
   user-init-file: userInit.csv
   board-init-file: boardInit.csv
   task-init-file: taskInit.csv
+  comment-init-file: commentInit.csv

@@ -25,6 +25,11 @@ spring:
             predicates:
               - Path=/api/task/**
 
+          - id: comment-service
+            uri: lb://comment-service
+            predicates:
+              - Path=/api/comment/**
+
           - id: monolith-service
             uri: lb://monolith-service
             predicates:
