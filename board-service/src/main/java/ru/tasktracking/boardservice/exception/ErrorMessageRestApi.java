@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @Setter
 public class ErrorMessageRestApi {
 
-    LocalDateTime timestamp;
+    private LocalDateTime timestamp;
 
-    int errorCode;
+    private int errorCode;
 
-    String message;
+    private String message;
 }

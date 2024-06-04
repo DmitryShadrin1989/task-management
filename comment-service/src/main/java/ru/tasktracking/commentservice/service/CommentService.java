@@ -1,6 +1,5 @@
 package ru.tasktracking.commentservice.service;
 
-
 import ru.tasktracking.commentservice.domain.Comment;
 import ru.tasktracking.commentservice.dto.CommentDto;
 

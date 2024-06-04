@@ -32,18 +32,17 @@ public class AuthProvider implements AuthenticationProvider {
         if (username != null) {
             User user = userFeignService.findUserByUsernameIgnoreCase(username);
 
-            if (user != null) {
-                try {
-                    if (passwordEncoder.matches(password, user.getPassword())) {
-                        return new UsernamePasswordAuthenticationToken(user, null, List.of());
-                    } else {
-                        throw new IncorrectPasswordException();
-                    }
-                } catch (Exception ex) {
-                    throw new IncorrectPasswordException(ex);
-                }
-            } else {
+            if (user == null) {
                 throw new UserNotFoundException();
+            }
+            try {
+                if (passwordEncoder.matches(password, user.getPassword())) {
+                    return new UsernamePasswordAuthenticationToken(user, null, List.of());
+                } else {
+                    throw new IncorrectPasswordException();
+                }
+            } catch (Exception ex) {
+                throw new IncorrectPasswordException(ex);
             }
         }
         return null;

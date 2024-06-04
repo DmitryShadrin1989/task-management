@@ -5,19 +5,6 @@
     <title>Authentication</title>
 
     <style type="text/css">
-        /*body {*/
-        /*    padding: 50px;*/
-        /*}*/
-
-        /*label {*/
-        /*    display: inline-block;*/
-        /*    width: 100px;*/
-        /*}*/
-
-        /*.row {*/
-        /*    margin-top: 10px;*/
-        /*}*/
-
         body {
             padding: 50px;
             font-family: Arial, sans-serif;
@@ -86,6 +73,7 @@
 <button type="button" id="createAccount" onclick="createAccount()">Create a new account</button>
 
 <script>
+    //todo переделать на получение из discovery
     const gateway_host = "http://localhost:8080";
 
     const username = document.getElementById('username');
