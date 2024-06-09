@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Authentication</title>
+
+    <style type="text/css">
+        body {
+            padding: 50px;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        h2, h3 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        label {
+            display: inline-block;
+            width: 150px;
+            font-weight: bold;
+        }
+
+        .row {
+            margin-top: 15px;
+        }
+
+        input[type="text"] {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            width: 200px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.375rem 0.75rem;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Authentication</h2>
+
+<h3>Please enter your account details:</h3>
+
+<div class="row">
+    <label for="username">Username:</label>
+    <input id="username" name="username" type="text"/>
+</div>
+
+<div class="row">
+    <label for="password">Password:</label>
+    <input id="password" name="password" type="text"/>
+</div>
+
+<br>
+
+<button type="button" onclick="login()">Log in</button>
+<button type="button" id="createAccount" onclick="createAccount()">Create a new account</button>
+
+<script>
+    //todo переделать на получение из discovery
+    const gateway_host = "http://localhost:8080";
+
+    const username = document.getElementById('username');
+    const password = document.getElementById('password');
+
+    localStorage.removeItem('token');
+
+    function login() {
+        const loginRequestDto = {username: username.value, password: password.value};
+        fetch(gateway_host + "/api/auth/login", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginRequestDto)
+        })
+            .then(response => response.json())
+            .then(loginResponse => {
+                if (isValue(loginResponse.token)) {
+                    localStorage.setItem('token', loginResponse.token);
+                } else {
+                    addErrorMessage(loginResponse.message);
+                }
+            })
+            .then(function () {
+                if (isValue(localStorage.getItem('token'))) {
+                    location.href = "/task-management";
+                }
+            })
+            .catch(error => console.error(error));
+    }
+
+    function createAccount() {
+        const loginRequestDto = {username: username.value, password: password.value};
+        fetch(gateway_host + "/api/user", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(loginRequestDto)
+        })
+            .then(response => response.json())
+            .then(user => {
+                addMessage("The account for the user " + user.username +
+                    " has been successfully created. Please enter your new credentials.");
+            })
+            .catch(error => console.error(error));
+    }
+
+    function isValue(val){
+        return (val !== undefined && val != null && val !== '');
+    }
+
+    function addErrorMessage(message) {
+        const newErrorMessage = document.createElement("label");
+        newErrorMessage.textContent += message;
+        newErrorMessage.style.color = "red";
+        document.body.appendChild(document.createElement('br'));
+        document.body.appendChild(newErrorMessage);
+        document.body.appendChild(document.createElement('br'));
+    }
+
+    function addMessage(message) {
+        const newMessage = document.createElement("label");
+        newMessage.textContent += message;
+        newMessage.style.color = "green";
+        document.body.appendChild(document.createElement('br'));
+        document.body.appendChild(newMessage);
+        document.body.appendChild(document.createElement('br'));
+    }
+</script>
+
+</body>
+</html>

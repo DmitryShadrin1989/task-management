@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>List of available boards</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        .currentUser {
+            font-size: 16px;
+            font-weight: bold;
+            color: #343a40;
+        }
+
+        h2, h3 {
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.375rem 0.75rem;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .boards {
+            border: 1px solid #007bff;
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .boards tr td, .boards th {
+            padding: 10px;
+            border: 1px solid #007bff;
+            text-align: left;
+        }
+
+        .boards th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .boards td:last-child, .boards td:first-child {
+            width: auto;
+        }
+
+        .commandsBoards {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body onload="uploadDataToPage()">
+
+<h2>Home page</h2>
+
+<div class="currentUser" id="currentUser">Greetings to you </div>
+<br>
+
+<h3>List of available boards:</h3>
+
+<div class="commandsBoards">
+    <a th:href="@{/task-management/board/new}" href="boardConfiguration.html" type="button">
+        <button>New board</button>
+    </a>
+</div>
+
+<br>
+
+<table class="boards" id="boards">
+    <thead>
+    <tr>
+        <th>№</th>
+        <th>Owner</th>
+        <th>Board Name</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<script>
+    //todo переделать на получение из discovery
+    const gateway_host = "http://localhost:8080";
+
+    let token;
+    const currentUser = document.getElementById('currentUser');
+    let currentUserObj = {};
+
+    const boardTable = document.getElementById('boards');
+
+    function uploadDataToPage() {
+        token = localStorage.getItem('token');
+        if (!token) {
+            location.href = "/login";
+        }
+
+        Promise.all([uploadCurrentUserToPage()]).then(() => {
+            uploadBoardsToPage();
+        });
+    }
+
+    function uploadCurrentUserToPage() {
+        return fetch(gateway_host + '/api/auth/current', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(user => {
+                const userLink = document.createElement("a");
+                userLink.innerHTML = user.username;
+                userLink.href = "/task-management/user/" + user.id;
+                currentUser.appendChild(userLink);
+
+                const logoutButton = document.createElement('button');
+                logoutButton.innerHTML = "Logout";
+                logoutButton.addEventListener('click', function () {
+                    localStorage.removeItem('token');
+                    location.href = "/login";
+                });
+                currentUser.appendChild(logoutButton);
+
+                currentUserObj = user;
+            })
+            .catch(error => console.error(error));
+    }
+
+    function uploadBoardsToPage() {
+        let count = 1;
+        fetch(gateway_host + '/api/board?executorId=' + currentUserObj.id, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(boards => boards.forEach(board => {
+                const row = boardTable.insertRow();
+
+                row.insertCell(0).innerText = count;
+                row.insertCell(1).innerText = board.owner.username;
+
+                const boardCell = row.insertCell(2);
+                const boardLink = document.createElement('a');
+                boardLink.innerHTML = board.name;
+                boardLink.href = "/task-management/board/" + board.id;
+                boardCell.appendChild(boardLink);
+
+                count++;
+            }))
+            .catch(error => {
+                console.error(error);
+                location.href = "/login";
+            });
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Task</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            padding: 50px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .currentUser {
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .nav-links {
+            margin-bottom: 20px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        label {
+            display: inline-block;
+            width: 150px;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        select,
+        textarea {
+            width: calc(100% - 160px);
+            padding: 8px;
+            margin-left: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        input:read-only {
+            background: #e9ecef;
+        }
+
+        textarea {
+            resize: vertical;
+            height: 100px;
+        }
+
+        .status-options {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-options input {
+            margin-left: 0;
+        }
+
+        .buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: #3498db;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        .comments {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comments th, .comments td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .comments th {
+            background: #f4f4f9;
+        }
+    </style>
+</head>
+<body onload="uploadDataToPage()">
+
+<div class="currentUser" id="currentUser">Current user: </div>
+<br>
+<a th:href="@{/task-management}" href="home.html">Home</a>
+<br>
+<a th:href="@{/task-management/board/{boardId}(boardId=${boardId})}" href="board.html">Board</a>
+<br>
+
+<h3>Task info:</h3>
+
+<input id="boardId" name="boardId" type="hidden" th:value="*{boardId}"/>
+
+<div class="row">
+    <label for="id">Id:</label>
+    <input id="id" name="id" type="text" readonly="readonly" th:value="*{id}"/>
+</div>
+
+<div class="row">
+    <label for="name">Task Name:</label>
+    <input id="name" name="name" type="text" value="The brief essence of the task"/>
+</div>
+
+<div class="row">
+    <label for="author">Author:</label>
+    <select id="author">
+    </select>
+</div>
+
+<div class="row">
+    <label for="executor">Executor:</label>
+    <select id="executor">
+    </select>
+</div>
+
+<div class="row">
+    <label for="reviewer">Reviewer:</label>
+    <select id="reviewer">
+    </select>
+</div>
+
+<div class="row">
+    <label for="creationDate">Creation date:</label>
+    <input id="creationDate" name="creationDate" type="date" readonly="readonly"/>
+</div>
+
+<div class="row">
+    <label for="plannedCompletionDate">Planned completion date:</label>
+    <input id="plannedCompletionDate" name="plannedCompletionDate" type="date"/>
+</div>
+
+<div class="row">
+    <label for="actualCompletionDate">Actual completion date:</label>
+    <input id="actualCompletionDate" name="actualCompletionDate" type="date"/>
+</div>
+
+<div class="row">
+    <label>Status:</label>
+    <input id="open" type="radio" value="open" name="status"/>open
+    <input id="inQueue" type="radio" value="inQueue" name="status"/>in queue
+    <input id="inWork" type="radio" value="inWork" name="status"/>in work
+    <input id="onChecking" type="radio" value="onChecking" name="status"/>on checking
+    <input id="completed" type="radio" value="completed" name="status"/>completed
+</div>
+
+<div class="row">
+    <label for="describe">Describe:</label>
+    <textarea id="describe" name="describe" value="Here you need to enter a description for the task"></textarea>
+</div>
+
+<div class="row" id="buttonSave">
+    <button type="button" onclick="saveTask()">Save</button>
+    <a href="board.html" th:href="@{/task-management/board/{boardId}(boardId=${boardId})}">
+        <button type="button">Cancel</button>
+    </a>
+</div>
+
+<h3>Comments:</h3>
+<table class="comments" id="comments">
+    <thead>
+    <tr>
+        <th>User</th>
+        <th>Date</th>
+        <th>Comment</th>
+    </tr>
+    </thead>
+    <tbody>
+    </tbody>
+</table>
+
+<br>
+
+<div class="row">
+    <label for="newComment">New comment:</label>
+    <textarea id="newComment" name="newComment"></textarea>
+</div>
+<button type="button" onclick="saveNewComment()">Add comment</button>
+
+
+<script>
+    //todo переделать на получение из discovery
+    const gateway_host = "http://localhost:8080";
+
+    let token;
+    const currentUser = document.getElementById('currentUser');
+
+    const taskId = document.getElementById('id');
+    const boardId = document.getElementById('boardId');
+    const taskName = document.getElementById('name');
+    const creationDate = document.getElementById('creationDate');
+    const plannedCompletionDate = document.getElementById('plannedCompletionDate');
+    const actualCompletionDate = document.getElementById('actualCompletionDate');
+    const describe = document.getElementById('describe');
+    const authorSelect = document.getElementById('author');
+    const executorSelect = document.getElementById('executor');
+    const reviewerSelect = document.getElementById('reviewer');
+    const commentsTable = document.getElementById('comments');
+    const newComment = document.getElementById('newComment');
+
+    function uploadDataToPage() {
+        token = localStorage.getItem('token');
+        if (!token) {
+            location.href = "/login";
+        }
+        uploadCurrentUserToPage();
+
+        if (isValue(taskId.value)) {
+            uploadTaskToPage(taskId);
+            uploadCommentsToPage(taskId);
+        } else {
+            setDefaultValues();
+            uploadUsersToPage(null);
+        }
+    }
+
+    function uploadCurrentUserToPage() {
+        fetch(gateway_host + '/api/auth/current', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(user => {
+                const userLink = document.createElement("a");
+                userLink.innerHTML = user.username;
+                userLink.href = "/task-management/user/" + user.id;
+                currentUser.id = user.id;
+                currentUser.appendChild(userLink);
+            })
+            .catch(error => console.error(error));
+    }
+
+    function setDefaultValues() {
+        document.getElementById("open").checked = true;
+    }
+
+    function uploadTaskToPage(taskId) {
+        fetch(gateway_host + '/api/task/' + taskId.value, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(task => {
+                boardId.value = task.boardId;
+                taskName.value = task.name;
+                creationDate.value = task.creationDate;
+                plannedCompletionDate.value = task.plannedCompletionDate;
+                actualCompletionDate.value = task.actualCompletionDate;
+                describe.value = task.describe;
+                document.getElementById(task.taskStatusValue).checked = true;
+                uploadUsersToPage(task);
+
+                console.log(boardId.value);
+            })
+            .catch(error => console.error(error));
+        console.log(boardId.value);
+    }
+
+    function uploadUsersToPage(task) {
+        fetch(gateway_host + '/api/board/' + boardId.value +'/user', {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(users => {
+                users.forEach(user => {
+                    const authorOption = document.createElement('option');
+                    authorOption.value = user.id;
+                    authorOption.textContent = user.username;
+                    if (isValue(task) && user.id === task.author.id) {
+                        authorOption.selected = true;
+                    }
+                    authorSelect.appendChild(authorOption);
+
+                    const executorOption = document.createElement('option');
+                    executorOption.value = user.id;
+                    executorOption.textContent = user.username;
+                    if (isValue(task) && user.id === task.executor.id) {
+                        executorOption.selected = true;
+                    }
+                    executorSelect.appendChild(executorOption);
+
+                    const reviewerOption = document.createElement('option');
+                    reviewerOption.value = user.id;
+                    reviewerOption.textContent = user.username;
+                    if (isValue(task) && user.id === task.reviewer.id) {
+                        reviewerOption.selected = true;
+                    }
+                    reviewerSelect.appendChild(reviewerOption);
+                })
+            })
+            .catch(error => {
+                console.error(error);
+                location.href = "/login";
+            });
+    }
+
+    function uploadCommentsToPage(taskId) {
+        fetch(gateway_host + '/api/comment?taskId=' + taskId.value, {
+            method: "GET",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: null
+        })
+            .then(response => response.json())
+            .then(comments => {
+                comments.forEach(comment => {
+                    const row = commentsTable.insertRow();
+
+                    row.id = comment.id;
+                    row.insertCell(0).innerText = comment.author.username;
+                    row.insertCell(1).innerText = comment.creationDate;
+                    row.insertCell(2).innerText = comment.comment;
+                })
+            })
+            .catch(error => {
+                console.error(error);
+            });
+    }
+
+    function saveTask() {
+        const statuses = document.querySelectorAll('input[name="status"]');
+        let statusValue;
+        for (const s of statuses) {
+            if (s.checked) {
+                statusValue = s.value;
+            }
+        }
+
+        const taskDto = {
+            id: taskId.value,
+            name: taskName.value,
+            describe: describe.value,
+            boardId: boardId.value,
+            author: {id: authorSelect.value, username: ""},
+            executor: {id: executorSelect.value, username: ""},
+            reviewer: {id: reviewerSelect.value, username: ""},
+            creationDate: creationDate.value,
+            plannedCompletionDate: plannedCompletionDate.value,
+            actualCompletionDate: actualCompletionDate.value,
+            taskStatusValue: statusValue
+        };
+
+        if (isValue(taskId.value)) {
+            fetch(gateway_host + "/api/task/" + taskId.value, {
+                method: "PUT",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(taskDto)})
+                .then(response => response.json())
+                .then(function () {
+                    location.href = "/task-management/board/" + boardId.value;
+                })
+                .catch(error => console.error(error));
+        } else {
+            fetch(gateway_host + "/api/task", {
+                method: "POST",
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(taskDto)})
+                .then(response => response.json())
+                .then(function () {
+                    location.href = "/task-management/board/" + boardId.value;
+                })
+                .catch(error => console.error(error));
+        }
+    }
+
+    function saveNewComment() {
+        const commentDto = {
+            id: null,
+            author: {id: currentUser.id, username: ""},
+            task: {id: taskId.value, name: ""},
+            creationDate: null,
+            comment: newComment.value
+        };
+
+        fetch(gateway_host + "/api/comment", {
+            method: "POST",
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(commentDto)})
+            .then(response => response.json())
+            .then(function () {
+                location.href = "/task-management/board/" + boardId.value + "/task/" + taskId.value;
+            })
+            .catch(error => console.error(error));
+    }
+
+    function isValue(val){
+        return (val !== undefined && val != null && val !== '');
+    }
+</script>
+
+</body>
+</html>

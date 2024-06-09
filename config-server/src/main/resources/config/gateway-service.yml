@@ -1,0 +1,58 @@
+server:
+  port: 8080
+
+eureka:
+  client:
+    fetch-registry: true
+
+spring:
+  cloud:
+    gateway:
+      mvc:
+        routes:
+          - id: board-service
+            uri: lb://board-service
+            predicates:
+              - Path=/api/board/**
+
+          - id: user-service
+            uri: lb://user-service
+            predicates:
+              - Path=/api/user/**
+
+          - id: task-service
+            uri: lb://task-service
+            predicates:
+              - Path=/api/task/**
+
+          - id: comment-service
+            uri: lb://comment-service
+            predicates:
+              - Path=/api/comment/**
+
+          - id: monolith-service
+            uri: lb://monolith-service
+            predicates:
+              - Path=/api/task-management/**
+
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          netflix:
+            zuul: DEBUG
+      web: DEBUG
+    com:
+      netflix:
+        zuul: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+JwtToken:
+  expirationDays: 7
+  secret: SuperSecret
