@@ -9,7 +9,6 @@ import ru.tasktracking.boardservice.domain.User;
 import ru.tasktracking.boardservice.dto.BoardDto;
 import ru.tasktracking.boardservice.dto.UserDto;
 import ru.tasktracking.boardservice.exception.EntityNotFoundException;
-import ru.tasktracking.boardservice.feign.UserFeignService;
 import ru.tasktracking.boardservice.repository.BoardRepository;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public class BoardServiceImpl implements BoardService {
 
     private final BoardRepository boardRepository;
 
-    private final UserFeignService userFeignService;
+    private final UserService userService;
 
     @Override
     @Transactional(readOnly = true)
@@ -48,7 +47,7 @@ public class BoardServiceImpl implements BoardService {
     @Override
     @Transactional(readOnly = true)
     public List<Board> findByExecutorsId(String executorId) {
-        var executor = userFeignService.findById(executorId)
+        var executor = userService.findById(executorId)
                 .orElseThrow(() -> new EntityNotFoundException("User with id %s not found".formatted(executorId)));
         return boardRepository.findAllByExecutorsContains(executor);
     }
@@ -70,9 +69,9 @@ public class BoardServiceImpl implements BoardService {
     }
 
     private Board save(String id, String name, String ownerId, List<String> executorsIds) {
-        var owner = userFeignService.findById(ownerId)
+        var owner = userService.findById(ownerId)
                 .orElseThrow(() -> new EntityNotFoundException("User with id %s not found".formatted(ownerId)));
-        var executors = executorsIds.stream().map(e -> userFeignService.findById(e)
+        var executors = executorsIds.stream().map(e -> userService.findById(e)
                 .orElseThrow(() -> new EntityNotFoundException("User with id %s not found".formatted(e)))).toList();
 
         return boardRepository.save(new Board(id, name, owner, executors));

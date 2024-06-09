@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import ru.tasktracking.gatewayservice.domain.User;
 import ru.tasktracking.gatewayservice.exeption.IncorrectPasswordException;
 import ru.tasktracking.gatewayservice.exeption.UserNotFoundException;
-import ru.tasktracking.gatewayservice.feign.UserFeignService;
+import ru.tasktracking.gatewayservice.service.UserService;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthProvider implements AuthenticationProvider {
 
-    private final UserFeignService userFeignService;
+    private final UserService userService;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -30,7 +30,7 @@ public class AuthProvider implements AuthenticationProvider {
         String password = authentication.getCredentials().toString();
 
         if (username != null) {
-            User user = userFeignService.findUserByUsernameIgnoreCase(username);
+            User user = userService.findUserByUsernameIgnoreCase(username);
 
             if (user == null) {
                 throw new UserNotFoundException();

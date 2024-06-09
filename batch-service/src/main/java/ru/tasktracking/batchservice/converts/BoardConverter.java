@@ -7,6 +7,7 @@ import ru.tasktracking.batchservice.dto.BoardCsvDto;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class BoardConverter {
@@ -16,7 +17,7 @@ public class BoardConverter {
     private final UserConverter userConverter;
 
     public BoardConverter(UserConverter userConverter) {
-        this.boardIdsMap = new HashMap<>();
+        this.boardIdsMap = new ConcurrentHashMap<>();
         this.userConverter = userConverter;
     }
 

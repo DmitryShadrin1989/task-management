@@ -8,8 +8,6 @@ import ru.tasktracking.taskservice.domain.Task;
 import ru.tasktracking.taskservice.domain.TaskStatus;
 import ru.tasktracking.taskservice.dto.TaskDto;
 import ru.tasktracking.taskservice.exception.EntityNotFoundException;
-import ru.tasktracking.taskservice.feign.BoardFeignService;
-import ru.tasktracking.taskservice.feign.UserFeignService;
 import ru.tasktracking.taskservice.repository.TaskRepository;
 
 import java.time.LocalDate;
@@ -22,9 +20,9 @@ public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
 
-    private final BoardFeignService boardFeignService;
+    private final BoardService boardService;
 
-    private final UserFeignService userFeignService;
+    private final UserService userService;
 
     @Override
     @Transactional(readOnly = true)
@@ -66,13 +64,13 @@ public class TaskServiceImpl implements TaskService {
     private Task save(String id, String name, String describe, String boardId, String authorId, String executorId,
                       String reviewerId, LocalDate creationDate, LocalDate plannedCompletionDate,
                       LocalDate actualCompletionDate, String taskStatusValue) {
-        var board = boardFeignService.findById(boardId)
+        var board = boardService.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("Board with id %s not found".formatted(boardId)));
-        var author = userFeignService.findById(authorId)
+        var author = userService.findById(authorId)
                 .orElseThrow(() -> new EntityNotFoundException("User with id %s not found".formatted(authorId)));
-        var executor = userFeignService.findById(executorId)
+        var executor = userService.findById(executorId)
                 .orElseThrow(() -> new EntityNotFoundException("User with id %s not found".formatted(executorId)));
-        var reviewer = userFeignService.findById(reviewerId)
+        var reviewer = userService.findById(reviewerId)
                 .orElseThrow(() -> new EntityNotFoundException("User with id %s not found".formatted(reviewerId)));
         var taskStatus = TaskStatus.findByValue(taskStatusValue);
         var task = new Task(id, name, describe, board, author, executor, reviewer, creationDate,

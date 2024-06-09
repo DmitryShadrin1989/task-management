@@ -1,4 +1,4 @@
-package ru.tasktracking.commentservice.feign;
+package ru.tasktracking.commentservice.service;
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,7 +8,7 @@ import ru.tasktracking.commentservice.domain.Task;
 import java.util.Optional;
 
 @FeignClient(name = "task-service")
-public interface TaskFeignService {
+public interface TaskService {
 
     @GetMapping(value = "/api/task/{id}")
     Optional<Task> findById(@PathVariable String id);

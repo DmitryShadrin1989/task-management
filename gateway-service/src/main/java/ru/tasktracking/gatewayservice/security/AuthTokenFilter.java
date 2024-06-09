@@ -12,7 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.tasktracking.gatewayservice.feign.UserFeignService;
+import ru.tasktracking.gatewayservice.service.UserService;
 
 import java.io.IOException;
 
@@ -23,7 +23,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenHandler jwtTokenHandler;
 
-    private final UserFeignService userFeignService;
+    private final UserService userService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -33,7 +33,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
         if (jwt != null && jwtTokenHandler.validate(jwt)) {
             String username = jwtTokenHandler.getUserNameFromToken(jwt);
-            UserDetails details = userFeignService.findUserByUsernameIgnoreCase(username);
+            UserDetails details = userService.findUserByUsernameIgnoreCase(username);
 
             var authentication = new UsernamePasswordAuthenticationToken(
                     details,

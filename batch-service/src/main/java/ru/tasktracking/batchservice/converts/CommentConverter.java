@@ -7,6 +7,7 @@ import ru.tasktracking.batchservice.dto.CommentCsvDto;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class CommentConverter {
@@ -18,7 +19,7 @@ public class CommentConverter {
     private final TaskConverter taskConverter;
 
     public CommentConverter(UserConverter userConverter, TaskConverter taskConverter) {
-        this.commentIdsMap = new HashMap<>();
+        this.commentIdsMap = new ConcurrentHashMap<>();
         this.userConverter = userConverter;
         this.taskConverter = taskConverter;
     }
