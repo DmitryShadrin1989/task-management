@@ -7,23 +7,192 @@ services:
     restart: always
     ports:
       - "27017:27017"
+    networks:
+      - task-management-network
     environment:
       - MONGO_INITDB_DATABASE=taskTrackingDb
+    healthcheck:
+      test: ["CMD", "mongosh", "--host", "localhost", "--eval", "db.runCommand('ping').ok == 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   mongo-express:
     image: mongo-express
     restart: always
     ports:
       - "8081:8081"
+    networks:
+      - task-management-network
     environment:
       ME_CONFIG_BASICAUTH: false
-
-  discovery-server:
-    build:
-      context: ./discovery-server
-    container_name: discovery-server
 
   config-server:
     build:
       context: ./config-server
     container_name: config-server
+    restart: always
+    ports:
+      - "8888:8888"
+    networks:
+      - task-management-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8888/actuator/health" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  discovery-server:
+    build:
+      context: ./discovery-server
+    container_name: discovery-server
+    restart: always
+    ports:
+      - "8761:8761"
+    networks:
+      - task-management-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    depends_on:
+      config-server:
+        condition: service_healthy
+    environment:
+       SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+
+  batch-service:
+    build:
+      context: ./batch-service
+    container_name: batch-service
+    networks:
+      - task-management-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/taskTrackingDb"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-server:8761/eureka/"
+
+  board-service:
+    build:
+      context: ./board-service
+    container_name: board-service
+    networks:
+      - task-management-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    environment:
+     SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+     SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/taskTrackingDb"
+     EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-server:8761/eureka/"
+
+  comment-service:
+    build:
+      context: ./comment-service
+    container_name: comment-service
+    networks:
+      - task-management-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/taskTrackingDb"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-server:8761/eureka/"
+
+  gateway-service:
+    build:
+      context: ./gateway-service
+    container_name: gateway-service
+    networks:
+      - task-management-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/taskTrackingDb"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-server:8761/eureka/"
+
+  page-service:
+    build:
+      context: ./page-service
+    container_name: page-service
+    networks:
+      - task-management-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/taskTrackingDb"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-server:8761/eureka/"
+
+  task-service:
+    build:
+      context: ./task-service
+    container_name: task-service
+    networks:
+      - task-management-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/taskTrackingDb"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-server:8761/eureka/"
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    networks:
+      - task-management-network
+    depends_on:
+      mongo:
+        condition: service_healthy
+      config-server:
+        condition: service_healthy
+      discovery-server:
+        condition: service_healthy
+    environment:
+      SPRING_CONFIG_IMPORT: "configserver:http://config-server:8888"
+      SPRING_DATA_MONGODB_URI: "mongodb://mongo:27017/taskTrackingDb"
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://discovery-server:8761/eureka/"
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  task-management-network:
+    driver: bridge

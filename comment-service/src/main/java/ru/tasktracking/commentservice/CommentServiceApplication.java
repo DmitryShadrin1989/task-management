@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 @EnableDiscoveryClient
 @EnableMongoRepositories
 @SpringBootApplication
-@EnableFeignClients(basePackages = "ru.tasktracking.commentservice.feign")
+@EnableFeignClients(basePackages = "ru.tasktracking.commentservice")
 public class CommentServiceApplication {
 
     public static void main(String[] args) {
