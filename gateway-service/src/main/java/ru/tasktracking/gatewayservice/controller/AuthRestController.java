@@ -24,6 +24,7 @@ public class AuthRestController {
     @PostMapping("/api/auth/login")
     public ResponseEntity<LoginResponseDto> authUser(
             @RequestBody LoginRequestDto request) {
+        log.info("calling the method: authUser");
         String token = authService.auth(request);
         UserDto user = authService.getCurrentUser();
         return ResponseEntity.ok(new LoginResponseDto(user, token));
@@ -31,6 +32,7 @@ public class AuthRestController {
 
     @GetMapping("/api/auth/current")
     public ResponseEntity<UserDto> getCurrentUser() {
+        log.info("calling the method: getCurrentUser");
         return ResponseEntity.ok(authService.getCurrentUser());
     }
 }
