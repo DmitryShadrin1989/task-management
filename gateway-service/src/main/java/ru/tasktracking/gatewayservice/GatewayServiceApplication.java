@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 
 @EnableDiscoveryClient
 @SpringBootApplication
-@EnableFeignClients(basePackages = "ru.tasktracking.gatewayservice.feign")
+@EnableFeignClients(basePackages = "ru.tasktracking.gatewayservice.service")
 public class GatewayServiceApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(GatewayServiceApplication.class, args);

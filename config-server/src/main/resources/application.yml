@@ -1,11 +1,15 @@
+server:
+  port: 8888
+
 spring:
-  profiles:
-    active: native
   cloud:
     config:
       server:
-        native:
-          search-locations: classpath:/config
+        git:
+          uri: https://github.com/DmitryShadrin1989/task-management-config-repo
 
-server:
-  port: 8888
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
