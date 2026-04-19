@@ -10,6 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 @RequiredArgsConstructor
 public class PageController {
 
+    @GetMapping("/")
+    public String root() {
+        return "redirect:/task-management";
+    }
+
     @GetMapping("/login")
     public String getAuthPage() {
         return "login";
