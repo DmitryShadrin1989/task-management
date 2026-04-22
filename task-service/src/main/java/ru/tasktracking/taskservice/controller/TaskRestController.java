@@ -24,10 +24,24 @@ public class TaskRestController {
     private final TaskService taskService;
 
     @GetMapping("/api/task")
-    public ResponseEntity<List<TaskDto>> getListTasks(@Nullable @RequestParam(name = "boardId") String boardId) {
+    public ResponseEntity<List<TaskDto>> getListTasks(@Nullable @RequestParam(name = "boardId") String boardId,
+                                                       @Nullable @RequestParam(name = "authorId") String authorId,
+                                                       @Nullable @RequestParam(name = "executorId") String executorId,
+                                                       @Nullable @RequestParam(name = "reviewerId") String reviewerId,
+                                                       @Nullable @RequestParam(name = "status") String status) {
         log.info("calling the method: getListTasks");
+        var normalizedAuthorId = normalizeFilter(authorId);
+        var normalizedExecutorId = normalizeFilter(executorId);
+        var normalizedReviewerId = normalizeFilter(reviewerId);
+        var normalizedStatus = normalizeFilter(status);
         if (boardId != null) {
-            return ResponseEntity.ok(TaskDto.toDtoList(taskService.getListOfTasksForBoard(boardId)));
+            return ResponseEntity.ok(TaskDto.toDtoList(taskService.getListOfTasksForBoard(
+                    boardId,
+                    normalizedAuthorId,
+                    normalizedExecutorId,
+                    normalizedReviewerId,
+                    normalizedStatus
+            )));
         }
         return ResponseEntity.ok(TaskDto.toDtoList(taskService.findAll()));
     }
@@ -48,5 +62,12 @@ public class TaskRestController {
     public ResponseEntity<TaskDto> createTask(@RequestBody TaskDto taskDto) {
         log.info("calling the method: createTask");
         return ResponseEntity.ok(new TaskDto(taskService.insert(taskDto)));
+    }
+
+    private String normalizeFilter(String value) {
+        if (value == null || value.isBlank() || "all".equalsIgnoreCase(value)) {
+            return null;
+        }
+        return value;
     }
 }

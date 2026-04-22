@@ -177,23 +177,35 @@
 
 <div class="filters">
     <label>Filters:</label>
-    <label for="executorFilter">Author:</label>
-    <select class="filter" id="executorFilter">
+    <label for="authorFilter">Author:</label>
+    <select class="filter" id="authorFilter">
     </select>
 
-    <label for="authorFilter">Executor:</label>
-    <select class="filter" id="authorFilter">
+    <label for="executorFilter">Executor:</label>
+    <select class="filter" id="executorFilter">
     </select>
 
     <label for="reviewerFilter">Reviewer:</label>
     <select class="filter" id="reviewerFilter">
     </select>
 
-    <button class="filter" type="button" th:href="@{/task-management/}">Apply</button>
-    <button class="filter" type="button" th:href="@{/task-management/}">Clear filters</button>
+    <label for="statusFilter">Status:</label>
+    <select class="filter" id="statusFilter">
+        <option value="all">All</option>
+        <option value="open">Open</option>
+        <option value="inQueue">In queue</option>
+        <option value="inWork">In work</option>
+        <option value="onChecking">On checking</option>
+        <option value="completed">Completed</option>
+    </select>
+
+    <button class="filter" id="applyFiltersButton" type="button">Apply</button>
+    <button class="filter" id="clearFiltersButton" type="button">Clear filters</button>
 </div>
 
 <br>
+
+<div id="emptyTasksState"></div>
 
 <div class="tasks">
     <table class="table" id="openTasks">
@@ -257,9 +269,13 @@
     const boardId = document.getElementById('id');
     const boardName = document.getElementById('name');
     const boardOwner = document.getElementById('owner');
-    const boardExecutorFilterSelect = document.getElementById('executorFilter');
     const boardAuthorFilterSelect = document.getElementById('authorFilter');
+    const boardExecutorFilterSelect = document.getElementById('executorFilter');
     const boardReviewerFilterSelect = document.getElementById('reviewerFilter');
+    const boardStatusFilterSelect = document.getElementById('statusFilter');
+    const applyFiltersButton = document.getElementById('applyFiltersButton');
+    const clearFiltersButton = document.getElementById('clearFiltersButton');
+    const emptyTasksState = document.getElementById('emptyTasksState');
 
     const openTasksTable = document.getElementById('openTasks');
     const inQueueTasksTable = document.getElementById('inQueueTasks');
@@ -274,6 +290,8 @@
         }
         uploadCurrentUserToPage();
 
+        applyFiltersButton.addEventListener('click', applyFilters);
+        clearFiltersButton.addEventListener('click', clearFilters);
         uploadBoardToPage();
     }
 
@@ -307,18 +325,21 @@
             .then(board => {
                 boardName.value = board.name;
                 boardOwner.value = board.owner.username;
+                addDefaultFilterOption(boardAuthorFilterSelect);
+                addDefaultFilterOption(boardExecutorFilterSelect);
+                addDefaultFilterOption(boardReviewerFilterSelect);
 
                 let executorsStr = "";
                 board.executors.forEach(user => {
-                    const executorFilterOption = document.createElement('option');
-                    executorFilterOption.value = user.id;
-                    executorFilterOption.textContent = user.username;
-                    boardExecutorFilterSelect.appendChild(executorFilterOption);
-
                     const authorFilterOption = document.createElement('option');
                     authorFilterOption.value = user.id;
                     authorFilterOption.textContent = user.username;
                     boardAuthorFilterSelect.appendChild(authorFilterOption);
+
+                    const executorFilterOption = document.createElement('option');
+                    executorFilterOption.value = user.id;
+                    executorFilterOption.textContent = user.username;
+                    boardExecutorFilterSelect.appendChild(executorFilterOption);
 
                     const reviewerFilterOption = document.createElement('option');
                     reviewerFilterOption.value = user.id;
@@ -336,8 +357,26 @@
             });
     }
 
-    function uploadTasksToPage() {
-        fetch(gateway_host + '/api/task?boardId=' + boardId.value, {
+    function uploadTasksToPage(filters = {}) {
+        clearTaskTables();
+        hideEmptyTasksState();
+
+        const queryParams = new URLSearchParams();
+        queryParams.append('boardId', boardId.value);
+        if (filters.authorId) {
+            queryParams.append('authorId', filters.authorId);
+        }
+        if (filters.executorId) {
+            queryParams.append('executorId', filters.executorId);
+        }
+        if (filters.reviewerId) {
+            queryParams.append('reviewerId', filters.reviewerId);
+        }
+        if (filters.status) {
+            queryParams.append('status', filters.status);
+        }
+
+        fetch(gateway_host + '/api/task?' + queryParams.toString(), {
             method: "GET",
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -345,43 +384,102 @@
             body: null
         })
             .then(response => response.json())
-            .then(tasks => tasks.forEach(task => {
-                let row = openTasksTable.insertRow();
-
-                switch (task.taskStatusValue) {
-                    case 'inQueue':
-                        row = inQueueTasksTable.insertRow();
-                        break;
-                    case 'inWork':
-                        row = inWorkTasksTable.insertRow();
-                        break;
-                    case 'onChecking':
-                        row = onCheckingTasksTable.insertRow();
-                        break;
-                    case 'completed':
-                        row = completedTasksTable.insertRow();
-                        break;
+            .then(tasks => {
+                if (!tasks.length) {
+                    showEmptyTasksState();
+                    return;
                 }
+                tasks.forEach(task => {
+                    let row = openTasksTable.insertRow();
 
-                const taskCell = row.insertCell(0);
+                    switch (task.taskStatusValue) {
+                        case 'inQueue':
+                            row = inQueueTasksTable.insertRow();
+                            break;
+                        case 'inWork':
+                            row = inWorkTasksTable.insertRow();
+                            break;
+                        case 'onChecking':
+                            row = onCheckingTasksTable.insertRow();
+                            break;
+                        case 'completed':
+                            row = completedTasksTable.insertRow();
+                            break;
+                    }
 
-                const taskExecutorLabel = document.createElement('label');
-                taskExecutorLabel.textContent = "Executor: " + task.executor.username;
-                taskExecutorLabel.style.display = 'block';
-                taskCell.appendChild(taskExecutorLabel);
+                    const taskCell = row.insertCell(0);
 
-                const plannedDateLabel = document.createElement('label');
-                plannedDateLabel.textContent = "Planned date: " + task.plannedCompletionDate;
-                plannedDateLabel.style.display = 'block';
-                taskCell.appendChild(plannedDateLabel);
+                    const taskExecutorLabel = document.createElement('label');
+                    taskExecutorLabel.textContent = "Executor: " + task.executor.username;
+                    taskExecutorLabel.style.display = 'block';
+                    taskCell.appendChild(taskExecutorLabel);
 
-                const taskLink = document.createElement('a');
-                taskLink.innerHTML = task.name;
-                taskLink.href = "/task-management" + "/board/" + boardId.value + "/task/" + task.id;
-                taskLink.style.display = 'block';
-                taskCell.appendChild(taskLink);
-            }))
+                    const plannedDateLabel = document.createElement('label');
+                    plannedDateLabel.textContent = "Planned date: " + task.plannedCompletionDate;
+                    plannedDateLabel.style.display = 'block';
+                    taskCell.appendChild(plannedDateLabel);
+
+                    const taskLink = document.createElement('a');
+                    taskLink.innerHTML = task.name;
+                    taskLink.href = "/task-management" + "/board/" + boardId.value + "/task/" + task.id;
+                    taskLink.style.display = 'block';
+                    taskCell.appendChild(taskLink);
+                })
+            })
             .catch(error => console.error(error));
+    }
+
+    function applyFilters() {
+        uploadTasksToPage({
+            authorId: normalizeFilterValue(boardAuthorFilterSelect.value),
+            executorId: normalizeFilterValue(boardExecutorFilterSelect.value),
+            reviewerId: normalizeFilterValue(boardReviewerFilterSelect.value),
+            status: normalizeFilterValue(boardStatusFilterSelect.value)
+        });
+    }
+
+    function clearFilters() {
+        boardAuthorFilterSelect.value = "all";
+        boardExecutorFilterSelect.value = "all";
+        boardReviewerFilterSelect.value = "all";
+        boardStatusFilterSelect.value = "all";
+        uploadTasksToPage();
+    }
+
+    function addDefaultFilterOption(selectElement) {
+        const option = document.createElement('option');
+        option.value = "all";
+        option.textContent = "All";
+        selectElement.appendChild(option);
+    }
+
+    function normalizeFilterValue(value) {
+        if (!value || value === "all") {
+            return null;
+        }
+        return value;
+    }
+
+    function clearTaskTables() {
+        clearTableRows(openTasksTable);
+        clearTableRows(inQueueTasksTable);
+        clearTableRows(inWorkTasksTable);
+        clearTableRows(onCheckingTasksTable);
+        clearTableRows(completedTasksTable);
+    }
+
+    function clearTableRows(tableElement) {
+        while (tableElement.rows.length > 1) {
+            tableElement.deleteRow(1);
+        }
+    }
+
+    function showEmptyTasksState() {
+        emptyTasksState.textContent = "No tasks found for selected filters.";
+    }
+
+    function hideEmptyTasksState() {
+        emptyTasksState.textContent = "";
     }
 </script>
 

@@ -12,6 +12,7 @@ import ru.tasktracking.taskservice.repository.TaskRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
@@ -33,7 +34,18 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional(readOnly = true)
     public List<Task> getListOfTasksForBoard(String boardId) {
-        return taskRepository.findAllByBoardId(boardId);
+        return getListOfTasksForBoard(boardId, null, null, null, null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Task> getListOfTasksForBoard(String boardId, String authorId, String executorId, String reviewerId, String status) {
+        return taskRepository.findAllByBoardId(boardId).stream()
+                .filter(task -> authorId == null || Objects.equals(task.getAuthor().getId(), authorId))
+                .filter(task -> executorId == null || Objects.equals(task.getExecutor().getId(), executorId))
+                .filter(task -> reviewerId == null || Objects.equals(task.getReviewer().getId(), reviewerId))
+                .filter(task -> status == null || Objects.equals(task.getTaskStatus().getValue(), status))
+                .toList();
     }
 
     @Override

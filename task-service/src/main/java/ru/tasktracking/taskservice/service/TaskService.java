@@ -11,6 +11,8 @@ public interface TaskService {
 
     List<Task> getListOfTasksForBoard(String boardId);
 
+    List<Task> getListOfTasksForBoard(String boardId, String authorId, String executorId, String reviewerId, String status);
+
     Task findById(String id);
 
     Task insert(TaskDto taskDto);
