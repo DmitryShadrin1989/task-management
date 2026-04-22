@@ -1,33 +1,84 @@
-# Task tracking and management system
-## Introduction
-The Task Tracking Application is a comprehensive solution for managing tasks efficiently. It allows users to create, 
-edit, and delete tasks, receive notifications about deadlines, categorize tasks, and collaborate within a team.
-The application also offers detailed reports and statistics to help users keep track of their productivity.
+# Task Management
 
-## Features
- - **Task Management:** Create, edit, delete tasks.
- - **Notifications:** Receive reminders about task deadlines.
- - **Categorization and Tagging:** Organize tasks using categories and tags.
- - **Team Collaboration:** Assign tasks to team members and work together.
- - **Reports and Statistics:** Generate reports and view statistics on task completion.
+Микросервисная система для управления задачами, пользователями, досками и комментариями.
+Сервисы регистрируются в Eureka, конфигурация централизована через Config Server, межсервисное взаимодействие выполняется по HTTP/Feign.
 
-## Architectural Patterns
- - **Microservices Architecture:** The application is built using a microservices architecture to ensure scalability and maintainability.
- - **REST API:** Services interact with each other through RESTful APIs.
+## Состав проекта
 
-## Application Architecture
-The Task Tracking Application consists of the following services:
- - **Page Service:** Provides the user interface for interacting with the application.
- - **Task Service:** Manages tasks and their statuses.
- - **User Service:** Manages user information.
- - **Gateway Service:** Redirects to the target services and performs authentication and authorization.
- - **Batch Service:** Initializes data and can be used as an alternative interface using the Spring Shell
- - **Board Service:** Manages boards.
- - **Comment Service:** Manages comments.
- - **Config Server:** Manages the configurations of the application microservices
- - **Discovery Server:** Performs registration of services and provides information about them.
+- `config-server` — централизованная конфигурация.
+- `discovery-server` — service discovery (Eureka).
+- `gateway-service` — единая точка входа и маршрутизация.
+- `page-service` — web UI.
+- `user-service` — управление пользователями.
+- `task-service` — управление задачами.
+- `board-service` — управление досками.
+- `comment-service` — управление комментариями.
+- `batch-service` — batch/shell-операции и инициализация данных.
+- `mongo` + `mongo-express` — хранилище и UI для MongoDB.
 
-## Contact
-For any inquiries or feedback, please contact dmitry.shadrin.alex1989@gmail.com.
- 
- 
+## Требования
+
+- Docker + Docker Compose.
+- Для локальной сборки сервисов без Docker: JDK 17.
+  - Во всех сервисах включен `maven-enforcer-plugin`, сборка на другом JDK будет остановлена.
+
+## Быстрый старт (рекомендуется)
+
+Из корня репозитория:
+
+```bash
+docker compose build --no-cache
+docker compose up -d
+docker compose ps
+```
+
+Остановка:
+
+```bash
+docker compose down --remove-orphans
+```
+
+## Полезные команды
+
+Логи конкретного сервиса:
+
+```bash
+docker compose logs -f comment-service
+```
+
+Проверка health:
+
+```bash
+curl http://localhost:8888/actuator/health   # config-server
+curl http://localhost:8761/actuator/health   # discovery-server
+curl http://localhost:8080/actuator/health   # gateway-service
+```
+
+## Порты сервисов
+
+- `8080` — `gateway-service`
+- `8081` — `mongo-express`
+- `8085` — `page-service`
+- `8086` — `user-service`
+- `8087` — `task-service`
+- `8088` — `comment-service`
+- `8089` — `board-service`
+- `8090` — `batch-service`
+- `8761` — `discovery-server`
+- `8888` — `config-server`
+- `27017` — `mongo`
+
+## Локальная сборка без Docker
+
+Если нужно собрать JAR вручную:
+
+```bash
+cd <service-directory>
+mvn -DskipTests clean package
+```
+
+Для сервисов с Maven Wrapper можно использовать `./mvnw`.
+
+## Контакты
+
+Вопросы и предложения: `dmitry.shadrin.alex1989@gmail.com`.
