@@ -43,13 +43,12 @@ a:hover {
 
 /* App shell */
 .app-header {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    min-height: 56px;
-    padding: 0 16px;
+    gap: 12px 20px;
+    min-height: 64px;
+    padding: 10px 16px;
     background: var(--nav-bg);
     color: var(--nav-text);
     box-shadow: 0 1px 0 rgba(9, 30, 66, 0.08);
@@ -67,37 +66,76 @@ a:hover {
 .app-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     font-weight: 600;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
+}
+
+.app-brand-link {
+    text-decoration: none;
+    font-size: 19px;
+    line-height: 1.2;
+}
+
+.app-brand-link:hover .app-brand-mark {
+    background: rgba(255, 255, 255, 0.28);
 }
 
 .app-brand-mark {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border-radius: var(--radius);
     background: rgba(255, 255, 255, 0.2);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 700;
+    flex-shrink: 0;
 }
 
-.app-nav-links {
+.app-brand-text {
+    white-space: nowrap;
+}
+
+.app-header-search {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
+    justify-self: center;
+    width: 100%;
+    max-width: 480px;
+    min-width: 0;
 }
 
-.app-nav-links a {
-    padding: 8px 10px;
+.app-header-search input[type="search"] {
+    flex: 1;
+    min-width: 0;
+    height: 36px;
+    padding: 0 12px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--text);
+    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.45);
     border-radius: var(--radius);
+    box-shadow: inset 0 1px 2px rgba(9, 30, 66, 0.06);
 }
 
-.app-nav-links a:hover {
-    background: rgba(255, 255, 255, 0.12);
+.app-header-search input[type="search"]::placeholder {
+    color: var(--text-subtle);
+}
+
+.app-header-search input[type="search"]:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.85);
+    outline-offset: 1px;
+}
+
+.app-header-search .btn {
+    flex-shrink: 0;
+    padding: 6px 12px;
+    font-size: 13px;
 }
 
 .current-user {
@@ -106,6 +144,23 @@ a:hover {
     align-items: center;
     gap: 10px;
     flex-wrap: wrap;
+    justify-self: end;
+}
+
+@media (max-width: 720px) {
+    .app-header {
+        grid-template-columns: 1fr;
+        justify-items: stretch;
+    }
+
+    .app-header-search {
+        justify-self: stretch;
+        max-width: none;
+    }
+
+    .current-user {
+        justify-self: start;
+    }
 }
 
 .current-user a {
@@ -987,48 +1042,70 @@ a.btn {
     margin-top: 8px;
 }
 
-.comments-table {
-    width: 100%;
-    border-collapse: collapse;
+.comments-list {
     font-size: 14px;
-    table-layout: fixed;
 }
 
-.comments-table th,
-.comments-table td {
-    padding: 10px 12px;
-    text-align: left;
+.comment-item {
+    padding: 12px 14px;
     border-bottom: 1px solid var(--border);
-    vertical-align: top;
 }
 
-.comments-table th:nth-child(1),
-.comments-table td:nth-child(1) {
-    width: 16%;
-}
-
-.comments-table th:nth-child(2),
-.comments-table td:nth-child(2) {
-    width: 20%;
-}
-
-.comments-table th:nth-child(3),
-.comments-table td:nth-child(3) {
-    width: 64%;
-    word-wrap: break-word;
-    overflow-wrap: anywhere;
-}
-
-.comments-table th {
-    background: #fafbfc;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    color: var(--text-subtle);
-}
-
-.comments-table tbody tr:last-child td {
+.comment-item:last-child {
     border-bottom: none;
+}
+
+.comment-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.comment-meta {
+    font-size: 12px;
+    color: var(--text-subtle);
+    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+}
+
+.comment-body {
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.comment-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 4px;
+    align-items: center;
+}
+
+.comment-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text-subtle);
+    cursor: default;
+    line-height: 0;
+}
+
+.comment-icon-btn:hover {
+    color: var(--text);
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.comment-icon-btn svg {
+    display: block;
 }
 
 /* Board config: user pickers */
@@ -1098,4 +1175,94 @@ a.btn {
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0;
+}
+
+/* Stub feature toasts */
+.app-toast-root {
+    position: fixed;
+    top: 72px;
+    right: 16px;
+    left: auto;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    max-width: min(320px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.app-toast-root .app-toast {
+    pointer-events: auto;
+}
+
+.app-toast {
+    margin: 0;
+    padding: 12px 16px;
+    background: var(--surface);
+    color: #b65c00;
+    border: 1px solid rgba(182, 92, 0, 0.35);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-raised);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    max-width: 100%;
+}
+
+.app-toast--visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.app-toast-line {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.app-toast-line--main {
+    font-weight: 600;
+    color: #b65c00;
+}
+
+.app-toast-line--detail {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #a05500;
+    font-weight: 400;
+}
+
+/* Task comment form: primary + attach */
+.comment-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.task-attach-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--text-subtle);
+    cursor: pointer;
+    line-height: 0;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.task-attach-btn:hover {
+    color: var(--text);
+    background: var(--page-bg);
+    border-color: var(--text-subtle);
+}
+
+.task-attach-btn svg {
+    display: block;
 }

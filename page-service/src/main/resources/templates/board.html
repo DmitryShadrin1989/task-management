@@ -11,13 +11,16 @@
 <body onload="uploadDataToPage()">
 
 <header class="app-header">
-    <div class="app-brand">
+    <a class="app-brand app-brand-link" th:href="@{/task-management}" href="home.html">
         <span class="app-brand-mark">HO</span>
-        <span>HedgehogOps</span>
-    </div>
-    <nav class="app-nav-links">
-        <a th:href="@{/task-management}" href="home.html">Boards</a>
-    </nav>
+        <span class="app-brand-text">HedgehogOps</span>
+    </a>
+    <form class="app-header-search" role="search" aria-label="Global search"
+          onsubmit="event.preventDefault(); showFeatureNotImplemented('Global search'); return false;">
+        <label class="sr-only" for="globalSearchInput">Search</label>
+        <input id="globalSearchInput" type="search" name="q" placeholder="Search…" autocomplete="off"/>
+        <button type="button" class="btn btn-nav" aria-label="Search (stub)" onclick="showFeatureNotImplemented('Global search')">Search</button>
+    </form>
     <div class="current-user" id="currentUser"><span>Current user:</span> </div>
 </header>
 
@@ -149,6 +152,7 @@
     </div>
 </main>
 
+<script src="/js/app-stubs.js"></script>
 <script>
     const gateway_host = "http://localhost:8080";
 
@@ -179,15 +183,15 @@
     };
 
     function applyBoardFiltersStub() {
-        /* Filters will be implemented in a separate task */
+        showFeatureNotImplemented('Board filters');
     }
 
     function clearBoardFiltersStub() {
-        /* Filters will be implemented in a separate task */
+        showFeatureNotImplemented('Board filters');
     }
 
     function boardTaskSearchStub() {
-        /* Task search on board will be implemented in a separate task */
+        showFeatureNotImplemented('Task search on board');
     }
 
     function uploadDataToPage() {
