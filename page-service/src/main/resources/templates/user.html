@@ -2,88 +2,48 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Authentication</title>
-
-    <style type="text/css">
-        body {
-            padding: 50px;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #343a40;
-        }
-
-        h2 {
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-
-        label {
-            display: inline-block;
-            width: 150px;
-            font-weight: bold;
-        }
-
-        .row {
-            margin-top: 15px;
-        }
-
-        input[type="text"] {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-            width: 200px;
-        }
-
-        input:read-only {
-            background: #e9ecef;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-            padding: 0.375rem 0.75rem;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 15px;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .currentUser {
-            font-size: 16px;
-            font-weight: bold;
-            color: #343a40;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>User · HedgehogOps</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any">
+    <link rel="stylesheet" href="/css/jira-like.css">
 </head>
 
 <body onload="uploadDataToPage()">
 
-<div class="currentUser" id="currentUser">Current user: </div>
-<br>
-<a th:href="@{/task-management}" href="home.html">Home</a>
-<br>
+<header class="app-header">
+    <div class="app-brand">
+        <span class="app-brand-mark">HO</span>
+        <span>HedgehogOps</span>
+    </div>
+    <nav class="app-nav-links">
+        <a th:href="@{/task-management}" href="home.html">Boards</a>
+    </nav>
+    <div class="current-user" id="currentUser"><span>Current user:</span> </div>
+</header>
 
-<h2>User Information</h2>
+<main class="app-main">
+    <div class="breadcrumbs">
+        <a th:href="@{/task-management}" href="home.html">Boards</a>
+        <span> / </span>
+        <span>User</span>
+    </div>
+    <h1 class="page-title">User profile</h1>
 
-<div class="row">
-    <label for="userId">Id:</label>
-    <input id="userId" name="userId" type="text" readonly="readonly" th:value="*{userId}"/>
-</div>
-
-<div class="row">
-    <label for="username">Username:</label>
-    <input id="username" name="username" type="text"/>
-</div>
-
-<br>
+    <section class="panel" aria-labelledby="user-profile-heading">
+        <h2 class="section-title" id="user-profile-heading">Information</h2>
+        <div class="form-row">
+            <label class="form-label" for="userId">Id</label>
+            <input id="userId" name="userId" type="text" readonly="readonly" th:value="*{userId}"/>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="username">Username</label>
+            <input id="username" name="username" type="text"/>
+        </div>
+    </section>
+</main>
 
 <script>
-    //todo переделать на получение из discovery
     const gateway_host = "http://localhost:8080";
 
     let token;

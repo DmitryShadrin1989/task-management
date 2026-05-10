@@ -2,82 +2,46 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Authentication</title>
-
-    <style type="text/css">
-        body {
-            padding: 50px;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #343a40;
-        }
-
-        h2, h3 {
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-
-        label {
-            display: inline-block;
-            width: 150px;
-            font-weight: bold;
-        }
-
-        .row {
-            margin-top: 15px;
-        }
-
-        input[type="text"] {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-            width: 200px;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 0.25rem;
-            padding: 0.375rem 0.75rem;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in · HedgehogOps</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any">
+    <link rel="stylesheet" href="/css/jira-like.css">
 </head>
 
 <body>
 
-<h2>Authentication</h2>
+<div class="login-page">
+    <div class="login-card">
+        <p class="login-brand">HedgehogOps</p>
+        <h2>Sign in</h2>
+        <p class="login-tagline">Roll your work forward — one quill at a time.</p>
+        <p class="muted">Use your account to access boards and tasks.</p>
 
-<h3>Please enter your account details:</h3>
+        <div class="form-row">
+            <label class="form-label" for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username"/>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password"/>
+        </div>
 
-<div class="row">
-    <label for="username">Username:</label>
-    <input id="username" name="username" type="text"/>
+        <div class="login-form-actions">
+            <button class="btn btn-primary" type="button" onclick="login()">Log in</button>
+            <button class="btn btn-subtle" type="button" id="createAccount" onclick="createAccount()">Create account</button>
+        </div>
+
+        <div class="login-alerts" id="loginAlerts" aria-live="polite"></div>
+    </div>
 </div>
-
-<div class="row">
-    <label for="password">Password:</label>
-    <input id="password" name="password" type="text"/>
-</div>
-
-<br>
-
-<button type="button" onclick="login()">Log in</button>
-<button type="button" id="createAccount" onclick="createAccount()">Create a new account</button>
 
 <script>
-    //todo переделать на получение из discovery
     const gateway_host = "http://localhost:8080";
 
     const username = document.getElementById('username');
     const password = document.getElementById('password');
+    const loginAlerts = document.getElementById('loginAlerts');
 
     localStorage.removeItem('token');
 
@@ -125,26 +89,22 @@
             .catch(error => console.error(error));
     }
 
-    function isValue(val){
+    function isValue(val) {
         return (val !== undefined && val != null && val !== '');
     }
 
     function addErrorMessage(message) {
-        const newErrorMessage = document.createElement("label");
-        newErrorMessage.textContent += message;
-        newErrorMessage.style.color = "red";
-        document.body.appendChild(document.createElement('br'));
-        document.body.appendChild(newErrorMessage);
-        document.body.appendChild(document.createElement('br'));
+        const el = document.createElement("p");
+        el.className = "msg-error";
+        el.textContent = message;
+        loginAlerts.appendChild(el);
     }
 
     function addMessage(message) {
-        const newMessage = document.createElement("label");
-        newMessage.textContent += message;
-        newMessage.style.color = "green";
-        document.body.appendChild(document.createElement('br'));
-        document.body.appendChild(newMessage);
-        document.body.appendChild(document.createElement('br'));
+        const el = document.createElement("p");
+        el.className = "msg-success";
+        el.textContent = message;
+        loginAlerts.appendChild(el);
     }
 </script>
 
