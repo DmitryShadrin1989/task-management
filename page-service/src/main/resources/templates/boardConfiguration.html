@@ -2,171 +2,84 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Board</title>
-    <style type="text/css">
-        body {
-            padding: 50px;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #343a40;
-        }
-
-        h3 {
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-
-        label {
-            display: inline-block;
-            width: 150px;
-            font-weight: bold;
-        }
-
-        input[type="text"] {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-            width: 250px;
-        }
-
-        input:read-only {
-            background: #e9ecef;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-            padding: 0.375rem 0.75rem;
-        }
-
-        .row {
-            margin-top: 15px;
-        }
-
-        select {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid #ced4da;
-            border-radius: 0.25rem;
-            width: 265px;
-        }
-
-        button {
-            padding: 0.375rem 0.75rem;
-            border: 1px solid #007bff;
-            border-radius: 0.25rem;
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 15px;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .table {
-            border: 1px solid steelblue;
-            border-collapse: collapse;
-            margin: 0 10px;
-            width: auto;
-        }
-
-        .table th, .table td {
-            padding: 10px;
-            border: 1px solid steelblue;
-            vertical-align: top;
-            text-align: center;
-        }
-
-        .table th {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .tablesGroup {
-            display: flex;
-            margin-top: 20px;
-        }
-
-        .currentUser {
-            font-size: 16px;
-            font-weight: bold;
-            color: #343a40;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Board settings · HedgehogOps</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any">
+    <link rel="stylesheet" href="/css/jira-like.css">
 </head>
 <body onload="uploadDataToPage()">
 
 <input id="currentUserId" name="currentUserId" type="hidden"/>
 <input id="currentUserName" name="currentUserName" type="hidden"/>
 
-<div class="currentUser" id="currentUser">Current user:</div>
-<br>
-<a th:href="@{/task-management}" href="home.html">Home</a>
-<br>
+<header class="app-header">
+    <div class="app-brand">
+        <span class="app-brand-mark">HO</span>
+        <span>HedgehogOps</span>
+    </div>
+    <nav class="app-nav-links">
+        <a th:href="@{/task-management}" href="home.html">Boards</a>
+    </nav>
+    <div class="current-user" id="currentUser"><span>Current user:</span> </div>
+</header>
 
-<h3>Board info:</h3>
+<main class="app-main">
+    <div class="breadcrumbs">
+        <a th:href="@{/task-management}" href="home.html">Boards</a>
+        <span> / </span>
+        <span>Board settings</span>
+    </div>
+    <h1 class="page-title">Board settings</h1>
 
-<div class="row">
-    <label class="head-label" for="boardId">Id:</label>
-    <input id="boardId" name="boardId" type="text" readonly="readonly" th:value="*{boardId} "/>
-</div>
+    <section class="panel" aria-labelledby="board-form-heading">
+        <h2 class="section-title" id="board-form-heading">Board</h2>
+        <div class="form-row">
+            <label class="form-label" for="boardId">Id</label>
+            <input id="boardId" name="boardId" type="text" readonly="readonly" th:value="*{boardId} "/>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="name">Board name</label>
+            <input id="name" name="name" type="text"/>
+        </div>
+        <div class="form-row">
+            <label class="form-label" for="owner">Owner</label>
+            <select id="owner"></select>
+        </div>
+    </section>
 
-<div class="row">
-    <label class="head-label" for="name">Board Name:</label>
-    <input id="name" name="name" type="text"/>
-</div>
+    <h2 class="section-title">Performers</h2>
+    <div class="picker-grid">
+        <div class="picker-table-wrap">
+            <table class="picker-table" id="allUsers">
+                <thead>
+                <tr>
+                    <th>№</th>
+                    <th>All users</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="picker-table-wrap">
+            <table class="picker-table" id="selectedUsers">
+                <thead>
+                <tr>
+                    <th>Selected users</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
-<div class="row">
-    <label class="head-label" for="owner">Owner:</label>
-    <select id="owner">
-    </select>
-</div>
-
-<br>
-<h3>List of performers:</h3>
-<div class="tablesGroup">
-
-    <table class="table" id="allUsers">
-        <thead>
-        <tr>
-            <th>№</th>
-            <th>All users</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-
-    <table class="table" id="selectedUsers">
-        <thead>
-        <tr>
-            <th>Selected users</th>
-        </tr>
-        </thead>
-        <tbody>
-        </tbody>
-    </table>
-
-</div>
-
-<div class="row" id="buttonSave">
-    <button type="button" onclick="saveBoard()">Save</button>
-    <a th:href="@{/task-management}" href="home.html">
-        <button type="button">Cancel</button>
-    </a>
-</div>
+    <div class="button-row" id="buttonSave">
+        <button class="btn btn-primary" type="button" onclick="saveBoard()">Save</button>
+        <a class="btn btn-subtle" th:href="@{/task-management}" href="home.html">Cancel</a>
+    </div>
+</main>
 
 <script>
-    //todo переделать на получение из discovery
     const gateway_host = "http://localhost:8080";
 
     let token;
@@ -242,10 +155,11 @@
                 cellUser.innerText = user.username;
 
                 const addButton = document.createElement('button');
+                addButton.type = 'button';
+                addButton.className = 'btn btn-primary btn-inline';
                 addButton.innerHTML = "+";
                 addButton.user = user;
                 addButton.onclick = addUser;
-                addButton.style.width = "50px";
                 cellUser.appendChild(addButton);
 
                 countAllUsers++;
@@ -254,7 +168,6 @@
     }
 
     function setDefaultValues() {
-
         console.log(currentUserId);
         console.log(currentUserName);
 
@@ -310,11 +223,12 @@
         cellUser.innerText = user.username;
 
         const deleteButton = document.createElement('button');
-        deleteButton.innerHTML = "-";
+        deleteButton.type = 'button';
+        deleteButton.className = 'btn btn-subtle btn-inline';
+        deleteButton.innerHTML = "−";
         deleteButton.rowNumber = selectedUsersTable.rows.length - 1;
         deleteButton.userId = user.id;
         deleteButton.onclick = delUser;
-        deleteButton.style.width = "50px";
         cellUser.appendChild(deleteButton);
     }
 
@@ -374,11 +288,10 @@
     }
 
     function addErrorMessage(message) {
-        const newErrorMessage = document.createElement("label");
-        newErrorMessage.textContent += message;
-        newErrorMessage.style.color = "red";
-        document.body.appendChild(newErrorMessage);
-        document.body.appendChild(document.createElement('br'));
+        const newErrorMessage = document.createElement("p");
+        newErrorMessage.className = "msg-error";
+        newErrorMessage.textContent = message;
+        document.querySelector('.app-main').appendChild(newErrorMessage);
     }
 
     function isValue(val) {

@@ -1,6 +1,6 @@
 # Page Service
 
-Frontend/Web слой системы.
+Frontend/Web слой системы **HedgehogOps**.
 
 ## Назначение
 

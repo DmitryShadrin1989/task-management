@@ -2,110 +2,85 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>List of available boards</title>
-    <style type="text/css">
-        body {
-            padding: 50px;
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            color: #343a40;
-        }
-
-        .currentUser {
-            font-size: 16px;
-            font-weight: bold;
-            color: #343a40;
-        }
-
-        h2, h3 {
-            color: #007bff;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 0.25rem;
-            padding: 0.375rem 0.75rem;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .boards {
-            border: 1px solid #007bff;
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        .boards tr td, .boards th {
-            padding: 10px;
-            border: 1px solid #007bff;
-            text-align: left;
-        }
-
-        .boards th {
-            background-color: #007bff;
-            color: #fff;
-            font-weight: bold;
-        }
-
-        .boards td:last-child, .boards td:first-child {
-            width: auto;
-        }
-
-        .commandsBoards {
-            margin-bottom: 15px;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Boards · HedgehogOps</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any">
+    <link rel="stylesheet" href="/css/jira-like.css">
 </head>
 
 <body onload="uploadDataToPage()">
 
-<h2>Home page</h2>
+<header class="app-header">
+    <div class="app-brand">
+        <span class="app-brand-mark">HO</span>
+        <span>HedgehogOps</span>
+    </div>
+    <nav class="app-nav-links">
+        <a th:href="@{/task-management}" href="home.html" aria-current="page">Boards</a>
+    </nav>
+    <div class="current-user" id="currentUser"><span>Greetings,</span> </div>
+</header>
 
-<div class="currentUser" id="currentUser">Greetings to you </div>
-<br>
+<main class="app-main">
+    <div class="home-layout">
+        <div class="home-main">
+            <h1 class="page-title">Your boards</h1>
+            <p class="page-lead">Boards where you are an executor</p>
+            <p class="home-tagline">Keep tasks on your spines, not in your head.</p>
 
-<h3>List of available boards:</h3>
+            <div class="toolbar home-toolbar">
+                <a class="btn btn-primary" th:href="@{/task-management/board/new}" href="boardConfiguration.html">New board</a>
+                <div class="home-toolbar-search">
+                    <label class="sr-only" for="boardSearch">Search boards</label>
+                    <input id="boardSearch" class="home-board-search" type="search" name="boardSearch"
+                           placeholder="Search boards…" autocomplete="off" aria-label="Search boards"/>
+                    <button type="button" class="btn btn-subtle home-search-btn" onclick="boardSearchStub()">Search</button>
+                </div>
+            </div>
 
-<div class="commandsBoards">
-    <a th:href="@{/task-management/board/new}" href="boardConfiguration.html" type="button">
-        <button>New board</button>
-    </a>
-</div>
+            <h2 class="section-title">Available boards</h2>
+            <div class="data-table-wrap">
+                <table class="data-table" id="boards">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Owner</th>
+                        <th>Board name</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-<br>
-
-<table class="boards" id="boards">
-    <thead>
-    <tr>
-        <th>№</th>
-        <th>Owner</th>
-        <th>Board Name</th>
-    </tr>
-    </thead>
-    <tbody>
-    </tbody>
-</table>
+        <aside class="home-notifications" aria-labelledby="notifications-heading">
+            <section class="panel">
+                <h2 class="section-title mb-0" id="notifications-heading">Notifications</h2>
+                <ul class="home-notification-list">
+                    <li class="home-notification-item">
+                        <div class="home-notification-title">New in HedgehogOps</div>
+                        <div class="home-notification-meta">Today</div>
+                        <div class="home-notification-body">Kanban refinements and board layout updates are live in this release.</div>
+                    </li>
+                    <li class="home-notification-item">
+                        <div class="home-notification-title">New comments on your tasks</div>
+                        <div class="home-notification-meta">Yesterday</div>
+                        <div class="home-notification-body">You have unread comments on tasks where you are author or reviewer. (Demo)</div>
+                    </li>
+                    <li class="home-notification-item">
+                        <div class="home-notification-title">Added to a board</div>
+                        <div class="home-notification-meta">This week</div>
+                        <div class="home-notification-body">You were added as an executor on board “Sprint planning”. (Demo)</div>
+                    </li>
+                </ul>
+            </section>
+        </aside>
+    </div>
+</main>
 
 <script>
-    //todo переделать на получение из discovery
     const gateway_host = "http://localhost:8080";
 
     let token;
@@ -113,6 +88,10 @@
     let currentUserObj = {};
 
     const boardTable = document.getElementById('boards');
+
+    function boardSearchStub() {
+        /* Board search will be implemented in a future task */
+    }
 
     function uploadDataToPage() {
         token = localStorage.getItem('token');
@@ -141,6 +120,8 @@
                 currentUser.appendChild(userLink);
 
                 const logoutButton = document.createElement('button');
+                logoutButton.type = 'button';
+                logoutButton.className = 'btn btn-nav';
                 logoutButton.innerHTML = "Logout";
                 logoutButton.addEventListener('click', function () {
                     localStorage.removeItem('token');
