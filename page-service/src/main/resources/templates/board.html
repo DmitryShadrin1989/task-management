@@ -93,21 +93,25 @@
             <h2 class="section-title">Filters</h2>
             <div class="filters-bar">
                 <div class="filter-group">
-                    <label for="executorFilter">Author:</label>
-                    <select class="filter-select" id="executorFilter"></select>
+                    <label for="authorFilter">Author:</label>
+                    <select class="filter-select" id="authorFilter"></select>
                 </div>
                 <div class="filter-group">
-                    <label for="authorFilter">Executor:</label>
-                    <select class="filter-select" id="authorFilter"></select>
+                    <label for="executorFilter">Executor:</label>
+                    <select class="filter-select" id="executorFilter"></select>
                 </div>
                 <div class="filter-group">
                     <label for="reviewerFilter">Reviewer:</label>
                     <select class="filter-select" id="reviewerFilter"></select>
                 </div>
                 <div class="filter-actions">
-                    <button class="btn btn-primary" type="button" onclick="applyBoardFiltersStub()">Apply</button>
-                    <button class="btn btn-subtle" type="button" onclick="clearBoardFiltersStub()">Clear filters</button>
+                    <button class="btn btn-primary" type="button" onclick="applyBoardFilters()">Apply</button>
+                    <button class="btn btn-subtle" type="button" onclick="clearBoardFilters()">Clear filters</button>
                 </div>
+            </div>
+
+            <div id="boardFilterEmptyState" class="board-filter-empty-state" hidden>
+                No tasks match the selected filters.
             </div>
 
             <h2 class="section-title">Tasks</h2>
@@ -162,9 +166,10 @@
     const boardId = document.getElementById('id');
     const boardName = document.getElementById('name');
     const boardOwner = document.getElementById('owner');
-    const boardExecutorFilterSelect = document.getElementById('executorFilter');
     const boardAuthorFilterSelect = document.getElementById('authorFilter');
+    const boardExecutorFilterSelect = document.getElementById('executorFilter');
     const boardReviewerFilterSelect = document.getElementById('reviewerFilter');
+    const boardFilterEmptyState = document.getElementById('boardFilterEmptyState');
 
     const columnLists = {
         open: document.getElementById('openTasksList'),
@@ -182,12 +187,82 @@
         completed: document.getElementById('completedTasksCount')
     };
 
-    function applyBoardFiltersStub() {
-        showFeatureNotImplemented('Board filters');
+    function initFilterSelects() {
+        [boardAuthorFilterSelect, boardExecutorFilterSelect, boardReviewerFilterSelect].forEach(select => {
+            const emptyOption = document.createElement('option');
+            emptyOption.value = '';
+            emptyOption.textContent = 'All';
+            select.appendChild(emptyOption);
+        });
+
+        const authorUnassignedOption = document.createElement('option');
+        authorUnassignedOption.value = 'UNASSIGNED';
+        authorUnassignedOption.textContent = 'Not selected';
+        boardAuthorFilterSelect.appendChild(authorUnassignedOption);
+
+        const reviewerUnassignedOption = document.createElement('option');
+        reviewerUnassignedOption.value = 'UNASSIGNED';
+        reviewerUnassignedOption.textContent = 'Not selected';
+        boardReviewerFilterSelect.appendChild(reviewerUnassignedOption);
     }
 
-    function clearBoardFiltersStub() {
-        showFeatureNotImplemented('Board filters');
+    function resetFilterSelects() {
+        [boardAuthorFilterSelect, boardExecutorFilterSelect, boardReviewerFilterSelect].forEach(select => {
+            select.innerHTML = '';
+        });
+        initFilterSelects();
+    }
+
+    function populateFilterUserOptions(users) {
+        users.forEach(user => {
+            [boardAuthorFilterSelect, boardExecutorFilterSelect, boardReviewerFilterSelect].forEach(select => {
+                const option = document.createElement('option');
+                option.value = user.id;
+                option.textContent = user.username;
+                select.appendChild(option);
+            });
+        });
+    }
+
+    function hasActiveBoardFilters() {
+        return boardAuthorFilterSelect.value !== ''
+            || boardExecutorFilterSelect.value !== ''
+            || boardReviewerFilterSelect.value !== '';
+    }
+
+    function buildTaskUrl() {
+        const params = new URLSearchParams();
+        params.set('boardId', boardId.value);
+        if (boardAuthorFilterSelect.value) {
+            params.set('authorId', boardAuthorFilterSelect.value);
+        }
+        if (boardExecutorFilterSelect.value) {
+            params.set('executorId', boardExecutorFilterSelect.value);
+        }
+        if (boardReviewerFilterSelect.value) {
+            params.set('reviewerId', boardReviewerFilterSelect.value);
+        }
+        return gateway_host + '/api/task?' + params.toString();
+    }
+
+    function showBoardFilterEmptyState() {
+        boardFilterEmptyState.hidden = false;
+    }
+
+    function hideBoardFilterEmptyState() {
+        boardFilterEmptyState.hidden = true;
+    }
+
+    function applyBoardFilters() {
+        loadBoardTasks(buildTaskUrl());
+    }
+
+    function clearBoardFilters() {
+        boardAuthorFilterSelect.value = '';
+        boardExecutorFilterSelect.value = '';
+        boardReviewerFilterSelect.value = '';
+        hideBoardFilterEmptyState();
+        loadBoardTasks();
     }
 
     function boardTaskSearchStub() {
@@ -242,27 +317,14 @@
 
                 const executorsList = document.getElementById('executorsList');
                 executorsList.innerHTML = '';
+                resetFilterSelects();
                 board.executors.forEach(user => {
-                    const executorFilterOption = document.createElement('option');
-                    executorFilterOption.value = user.id;
-                    executorFilterOption.textContent = user.username;
-                    boardExecutorFilterSelect.appendChild(executorFilterOption);
-
-                    const authorFilterOption = document.createElement('option');
-                    authorFilterOption.value = user.id;
-                    authorFilterOption.textContent = user.username;
-                    boardAuthorFilterSelect.appendChild(authorFilterOption);
-
-                    const reviewerFilterOption = document.createElement('option');
-                    reviewerFilterOption.value = user.id;
-                    reviewerFilterOption.textContent = user.username;
-                    boardReviewerFilterSelect.appendChild(reviewerFilterOption);
-
                     const li = document.createElement('li');
                     li.textContent = user.username;
                     executorsList.appendChild(li);
                 });
-                uploadTasksToPage();
+                populateFilterUserOptions(board.executors);
+                loadBoardTasks();
             })
             .catch(error => {
                 console.error(error);
@@ -307,9 +369,37 @@
         columnCounts.completed.textContent = String(columnLists.completed.children.length);
     }
 
-    function uploadTasksToPage() {
+    function renderTasks(tasks) {
         clearKanban();
-        fetch(gateway_host + '/api/task?boardId=' + boardId.value, {
+        tasks.forEach(task => {
+            let target = columnLists.open;
+            switch (task.taskStatusValue) {
+                case 'inQueue':
+                    target = columnLists.inQueue;
+                    break;
+                case 'inWork':
+                    target = columnLists.inWork;
+                    break;
+                case 'onChecking':
+                    target = columnLists.onChecking;
+                    break;
+                case 'completed':
+                    target = columnLists.completed;
+                    break;
+            }
+            target.appendChild(createTaskCard(task));
+        });
+        updateColumnCounts();
+        if (tasks.length === 0 && hasActiveBoardFilters()) {
+            showBoardFilterEmptyState();
+        } else {
+            hideBoardFilterEmptyState();
+        }
+    }
+
+    function loadBoardTasks(url) {
+        const taskUrl = url || (gateway_host + '/api/task?boardId=' + encodeURIComponent(boardId.value));
+        fetch(taskUrl, {
             method: "GET",
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -317,27 +407,7 @@
             body: null
         })
             .then(response => response.json())
-            .then(tasks => {
-                tasks.forEach(task => {
-                    let target = columnLists.open;
-                    switch (task.taskStatusValue) {
-                        case 'inQueue':
-                            target = columnLists.inQueue;
-                            break;
-                        case 'inWork':
-                            target = columnLists.inWork;
-                            break;
-                        case 'onChecking':
-                            target = columnLists.onChecking;
-                            break;
-                        case 'completed':
-                            target = columnLists.completed;
-                            break;
-                    }
-                    target.appendChild(createTaskCard(task));
-                });
-                updateColumnCounts();
-            })
+            .then(tasks => renderTasks(tasks))
             .catch(error => console.error(error));
     }
 </script>

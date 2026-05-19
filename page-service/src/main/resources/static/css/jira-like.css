@@ -976,6 +976,20 @@ a.btn {
     margin-bottom: 0;
 }
 
+.board-filter-empty-state {
+    margin: 12px 0 0;
+    padding: 12px 14px;
+    background: #fff7d6;
+    border: 1px solid #f5cd47;
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+}
+
+.board-filter-empty-state[hidden] {
+    display: none;
+}
+
 .board-main .kanban-board {
     margin-top: 8px;
     display: grid;
