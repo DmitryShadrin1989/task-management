@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.tasktracking.taskservice.dto.TaskDto;
+import ru.tasktracking.taskservice.filter.TaskBoardFilter;
 import ru.tasktracking.taskservice.service.TaskService;
 
 import java.util.List;
@@ -24,8 +25,17 @@ public class TaskRestController {
     private final TaskService taskService;
 
     @GetMapping("/api/task")
-    public ResponseEntity<List<TaskDto>> getListTasks(@Nullable @RequestParam(name = "boardId") String boardId) {
+    public ResponseEntity<List<TaskDto>> getListTasks(
+            @Nullable @RequestParam(name = "boardId") String boardId,
+            @Nullable @RequestParam(name = "authorId") String authorId,
+            @Nullable @RequestParam(name = "executorId") String executorId,
+            @Nullable @RequestParam(name = "reviewerId") String reviewerId
+    ) {
         log.info("calling the method: getListTasks");
+        if (boardId != null && TaskBoardFilter.hasFilterParams(authorId, executorId, reviewerId)) {
+            var filter = TaskBoardFilter.fromQuery(boardId, authorId, executorId, reviewerId);
+            return ResponseEntity.ok(TaskDto.toDtoList(taskService.getFilteredTasksForBoard(filter)));
+        }
         if (boardId != null) {
             return ResponseEntity.ok(TaskDto.toDtoList(taskService.getListOfTasksForBoard(boardId)));
         }

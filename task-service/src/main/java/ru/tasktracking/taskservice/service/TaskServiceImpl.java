@@ -8,6 +8,7 @@ import ru.tasktracking.taskservice.domain.Task;
 import ru.tasktracking.taskservice.domain.TaskStatus;
 import ru.tasktracking.taskservice.dto.TaskDto;
 import ru.tasktracking.taskservice.exception.EntityNotFoundException;
+import ru.tasktracking.taskservice.filter.TaskBoardFilter;
 import ru.tasktracking.taskservice.repository.TaskRepository;
 
 import java.time.LocalDate;
@@ -34,6 +35,15 @@ public class TaskServiceImpl implements TaskService {
     @Transactional(readOnly = true)
     public List<Task> getListOfTasksForBoard(String boardId) {
         return taskRepository.findAllByBoardId(boardId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Task> getFilteredTasksForBoard(TaskBoardFilter filter) {
+        if (!filter.hasFilters()) {
+            return taskRepository.findAllByBoardId(filter.boardId());
+        }
+        return taskRepository.findByBoardFilter(filter);
     }
 
     @Override
